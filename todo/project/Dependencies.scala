@@ -82,15 +82,15 @@ object Dependencies {
 
     case object tpolecat {
       val `skunk-core` =
-        "org.tpolecat" %% "skunk-core" % "0.0.18"
+        "org.tpolecat" %% "skunk-core" % "0.0.21"
     }
 
     case object typelevel {
       val `cats-core` =
-        "org.typelevel" %% "cats-core" % "2.1.1"
+        "org.typelevel" %% "cats-core" % "2.2.0"
 
       val `cats-effect` =
-        "org.typelevel" %% "cats-effect" % "2.1.4"
+        "org.typelevel" %% "cats-effect" % "2.2.0"
 
       val `discipline-scalatest` =
         "org.typelevel" %% "discipline-scalatest" % "2.0.1"

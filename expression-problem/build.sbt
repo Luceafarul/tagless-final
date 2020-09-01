@@ -10,6 +10,7 @@ ThisBuild / scalacOptions ++= Seq(
   "-language:_",
   "-unchecked",
   "-Wunused:_",
+  "-Wvalue-discard",
   "-Xfatal-warnings",
   "-Ymacro-annotations"
 )
@@ -17,19 +18,19 @@ ThisBuild / scalacOptions ++= Seq(
 lazy val `expression-problem` =
   project
     .in(file("."))
-    .settings(commonSettings: _*)
+    .settings(commonSettings)
     .aggregate(dsls, interpreters, programs, main)
 
 lazy val dsls =
   project
     .in(file("01-dsls"))
-    .settings(commonSettings: _*)
+    .settings(commonSettings)
 
 lazy val interpreters =
   project
     .in(file("02-interpreters"))
     .dependsOn(dsls)
-    .settings(commonSettings: _*)
+    .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq(
         "org.typelevel" %% "cats-core" % "2.1.1"
@@ -40,14 +41,14 @@ lazy val programs =
   project
     .in(file("02-programs"))
     .dependsOn(dsls)
-    .settings(commonSettings: _*)
+    .settings(commonSettings)
 
 lazy val main =
   project
     .in(file("03-main"))
     .dependsOn(interpreters)
     .dependsOn(programs)
-    .settings(commonSettings: _*)
+    .settings(commonSettings)
 
 lazy val commonSettings = Seq(
   addCompilerPlugin(org.augustjune.`context-applied`),
