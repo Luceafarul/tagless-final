@@ -8,8 +8,10 @@ object Main extends App {
 
   println("─" * 100)
 
-  println(new `final`.Program(`final`.View).repr)
-  println(s"Evaluate: ${new `final`.Program(`final`.Eval).repr}")
+  import  `final`._
+
+  println(Program.dsl(View.dsl).repr)
+  println(s"Evaluate: ${Program.dsl(Eval.dsl).repr}")
 
   println("─" * 100)
 }

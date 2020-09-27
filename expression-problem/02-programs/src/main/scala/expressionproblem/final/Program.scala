@@ -1,15 +1,22 @@
 package expressionproblem.initial.`final`
 
-class Program[Repr](exp: Exp[Repr]) {
-  import exp._
+trait Program[Repr] {
+  def repr: Repr
+}
 
-  val repr: Repr = addition(
-    literal(16),
-    negation(
-      addition(
-        literal(1),
-        literal(2)
+object Program {
+  def dsl[Repr](exp: Exp[Repr]): Program[Repr] =
+    new Program[Repr] {
+      import exp._
+
+      val repr: Repr = addition(
+        literal(16),
+        negation(
+          addition(
+            literal(1),
+            literal(2)
+          )
+        )
       )
-    )
-  )
+    }
 }

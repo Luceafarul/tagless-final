@@ -1,8 +1,10 @@
-package expressionproblem.initial.`final`
+package expressionproblem.initial
 
-
-object Eval extends Exp[Int] {
-  def literal(n: Int): Int = n
-  def negation(e: Int): Int = -e
-  def addition(e1: Int, e2: Int): Int = e1 + e2
+object Eval {
+  def apply(exp: Exp): Int =
+    exp match {
+      case Exp.Literal(n)       => n
+      case Exp.Negation(e)      => -apply(e)
+      case Exp.Addition(e1, e2) => apply(e1) + apply(e2)
+    }
 }
