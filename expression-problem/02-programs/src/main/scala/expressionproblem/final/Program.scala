@@ -1,10 +1,6 @@
 package expressionproblem.initial.`final`
 
 trait Program[A] {
-  def run: A
-}
-
-trait OptionProgram[A] {
   def run: Option[A]
 }
 
@@ -14,7 +10,7 @@ object Program {
       new Program[A] {
         import expression._
 
-        override val run: A = addition(
+        override val run: Option[A] = addition(
           literal(16),
           negation(
             addition(
@@ -35,7 +31,7 @@ object Program {
         import expression._
         import multiplication._
 
-        override val run: A = multiply(
+        override val run: Option[A] = multiply(
           literal(2),
           Expression.dsl(expression).run
         )
@@ -51,7 +47,7 @@ object Program {
         import expression._
         import multiplication._
 
-        override val run: A = addition(
+        override val run: Option[A] = addition(
           literal(16),
           negation(
             multiply(
@@ -71,8 +67,8 @@ object Program {
         expression: Expression[A],
         multiplication: Multiplication[A],
         division: Division[A]
-      ): OptionProgram[A] =
-      new OptionProgram[A] {
+      ): Program[A] =
+      new Program[A] {
         import division._
         import expression._
         import multiplication._
@@ -89,33 +85,27 @@ object Program {
         expression: Expression[A],
         multiplication: Multiplication[A],
         division: Division[A]
-      ): OptionProgram[A] =
-      new OptionProgram[A] {
+      ): Program[A] =
+      new Program[A] {
         import division._
         import expression._
         import multiplication._
 
-        override val run: Option[A] = {
-          val resultOfDivision = divide(
-            multiply(
-              literal(2),
-              addition(
-                literal(1),
-                literal(2)
-              )
-            ),
-            literal(2)
-          )
-
-          resultOfDivision.map(res =>
-            addition(
-              literal(16),
-              negation(
-                res
-              )
+        override val run: Option[A] = addition(
+          literal(16),
+          negation(
+            divide(
+              multiply(
+                literal(2),
+                addition(
+                  literal(1),
+                  literal(2)
+                )
+              ),
+              literal(2)
             )
           )
-        }
+        )
       }
   }
 }
