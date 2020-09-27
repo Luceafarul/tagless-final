@@ -1,7 +1,7 @@
 package expressionproblem.initial.`final`
 
-trait Exp[Repr] {
-  def literal(n: Int): Repr
-  def negation(e: Repr): Repr
-  def addition(e1: Repr, e2: Repr): Repr
+trait Expression[A] {
+  def literal(n: Int): A
+  def negation(e: A): A
+  def addition(e1: A, e2: A): A
 }

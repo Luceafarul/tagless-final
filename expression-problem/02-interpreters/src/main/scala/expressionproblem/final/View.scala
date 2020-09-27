@@ -1,9 +1,9 @@
 package expressionproblem.initial.`final`
 
 object View {
-  val dsl: Exp[String] = new Exp[String] {
-    def literal(n: Int): String = s"$n"
-    def negation(e: String): String = s"(-$e)"
-    def addition(e1: String, e2: String): String = s"($e1 + $e2)"
+  val dsl: Expression[String] = new Expression[String] {
+    override def literal(n: Int): String = s"$n"
+    override def negation(e: String): String = s"(-$e)"
+    override def addition(e1: String, e2: String): String = s"($e1 + $e2)"
   }
 }

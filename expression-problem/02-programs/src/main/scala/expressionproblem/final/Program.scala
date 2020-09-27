@@ -1,15 +1,15 @@
 package expressionproblem.initial.`final`
 
-trait Program[Repr] {
-  def repr: Repr
+trait Program[A] {
+  def run: A
 }
 
 object Program {
-  def dsl[Repr](exp: Exp[Repr]): Program[Repr] =
-    new Program[Repr] {
-      import exp._
+  def dsl[A](expression: Expression[A]): Program[A] =
+    new Program[A] {
+      import expression._
 
-      val repr: Repr = addition(
+      override val run: A = addition(
         literal(16),
         negation(
           addition(
