@@ -19,25 +19,25 @@ object View {
   }
 
   object Addition {
-    def dsl[F[_]: Applicative]: Addition[F, String] =
+    def dsl[F[_]: Applicative: NonEmptyParallel]: Addition[F, String] =
       new Addition[F, String] {
         override def addition(e1: F[String], e2: F[String]): F[String] =
-          (e1, e2).mapN((e1, e2) => s"($e1 + $e2)")
+          (e1, e2).parMapN((e1, e2) => s"($e1 + $e2)")
       }
   }
   object Multiplication {
-    def dsl[F[_]: Apply]: Multiplication[F, String] =
+    def dsl[F[_]: Apply: NonEmptyParallel]: Multiplication[F, String] =
       new Multiplication[F, String] {
         override def multiply(e1: F[String], e2: F[String]): F[String] =
-          (e1, e2).mapN((e1, e2) => s"($e1 * $e2)")
+          (e1, e2).parMapN((e1, e2) => s"($e1 * $e2)")
       }
   }
 
   object Division {
-    def dsl[F[_]: Apply]: Division[F, String] =
+    def dsl[F[_]: Apply: NonEmptyParallel]: Division[F, String] =
       new Division[F, String] {
         override def divide(e1: F[String], e2: F[String]): F[String] =
-          (e1, e2).mapN((e1, e2) => s"($e1 / $e2)")
+          (e1, e2).parMapN((e1, e2) => s"($e1 / $e2)")
       }
   }
 }

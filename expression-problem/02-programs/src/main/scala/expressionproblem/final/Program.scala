@@ -119,4 +119,27 @@ object Program {
         )
       }
   }
+
+  object DivisionWithTwoErrors {
+    def dsl[F[_], A](
+        implicit
+        L: Literal[F, A],
+        A: Addition[F, A],
+        D: Division[F, A]
+      ): Program[F, A] =
+      new Program[F, A] {
+        import L._, A._, D._
+
+        override val run: F[A] = addition(
+          divide(
+            literal(3),
+            literal(0)
+          ),
+          divide(
+            literal(3),
+            literal(5)
+          )
+        )
+      }
+  }
 }
