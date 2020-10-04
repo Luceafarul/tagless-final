@@ -48,6 +48,11 @@ lazy val main =
     .dependsOn(interpreters)
     .dependsOn(programs)
     .settings(commonSettings: _*)
+    .settings(
+      libraryDependencies ++= Seq(
+        "org.typelevel" %% "cats-effect" % "2.1.3"
+      )
+    )
 
 lazy val commonSettings = Seq(
   addCompilerPlugin(org.typelevel.`kind-projector`),

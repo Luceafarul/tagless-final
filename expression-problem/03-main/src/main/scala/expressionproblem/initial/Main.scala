@@ -153,4 +153,28 @@ object Main extends App {
     .tap(res => println(s"Evaluate: $res"))
 
   println("─" * 100)
+
+    Program
+    .DivisionWithTwoErrors
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Addition.dsl,
+      View.Division.dsl
+    )
+    .run
+    .tap(println)
+
+  Program
+    .DivisionWithTwoErrors
+    .dsl[EitherT[effect.IO, NonEmptyChain[String], *], Int](
+      Evaluate.Literal.dsl,
+      Evaluate.Addition.dsl,
+      Evaluate.Division.dsl
+    )
+    .run
+    .tap(res => println(s"Evaluate: $res"))
+    .tap(_.value.pipe(println))
+    .tap(_.value.unsafeRunSync.pipe(println))
+
+  println("─" * 100)
 }
