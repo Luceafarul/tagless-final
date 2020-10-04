@@ -1,15 +1,15 @@
 package expressionproblem.initial.`final`
 
-trait Expression[A] {
-  def literal(n: Int): Option[A]
-  def negation(e: Option[A]): Option[A]
-  def addition(e1: Option[A], e2: Option[A]): Option[A]
+trait Expression[F[_], A] {
+  def literal(n: Int): F[A]
+  def negation(e: F[A]): F[A]
+  def addition(e1: F[A], e2: F[A]): F[A]
 }
 
-trait Multiplication[A] {
-  def multiply(e1: Option[A], e2: Option[A]): Option[A]
+trait Multiplication[F[_], A] {
+  def multiply(e1: F[A], e2: F[A]): F[A]
 }
 
-trait Division[A] {
-  def divide(e1: Option[A], e2: Option[A]): Option[A]
+trait Division[F[_], A] {
+  def divide(e1: F[A], e2: F[A]): F[A]
 }

@@ -1,28 +1,28 @@
 package expressionproblem.initial.`final`
 
+import cats._
+import cats.syntax.all._
 object Evaluate {
   object Expression {
-    val dsl: Expression[Int] = new Expression[Int] {
-      override def literal(n: Int): Option[Int] = Some(n)
-      override def negation(e: Option[Int]): Option[Int] = e.map(-_)
-      override def addition(e1: Option[Int], e2: Option[Int]): Option[Int] =
-        e1.zip(e2).map { case (e1, e2) => e1 + e2 }
+    def dsl[F[_] : Applicative]: Expression[F, Int] = new Expression[F, Int] {
+      override def literal(n: Int): F[Int] = n.pure[F]
+      override def negation(e: F[Int]): F[Int] = e.map(-_)
+      override def addition(e1: F[Int], e2: F[Int]): F[Int] = (e1, e2).mapN(_ + _)
     }
   }
 
   object Multiplication {
-    val dsl: Multiplication[Int] = new Multiplication[Int] {
-      override def multiply(e1: Option[Int], e2: Option[Int]): Option[Int] =
-        e1.zip(e2).map { case (e1, e2) => e1 * e2 }
+    def dsl[F[_]: Apply]: Multiplication[F, Int] = new Multiplication[F, Int] {
+      override def multiply(e1: F[Int], e2: F[Int]): F[Int] = (e1, e2).mapN(_ * _)
     }
   }
 
   object Division {
-    val dsl: Division[Int] = new Division[Int] {
-      override def divide(e1: Option[Int], e2: Option[Int]): Option[Int] =
-        e1.zip(e2).flatMap {
-          case (e1, 0)  => None
-          case (e1, e2) => Some(e1 / e2)
+    def dsl[F[_]: MonadError[*[_], String]]: Division[F, Int] = new Division[F, Int] {
+      override def divide(e1: F[Int], e2: F[Int]): F[Int] =
+        (e1, e2).tupled.flatMap {
+          case (e1, 0)  => "Division by zero".raiseError[F, Int]
+          case (e1, e2) => (e1 / e2).pure[F]
         }
     }
   }
