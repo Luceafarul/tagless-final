@@ -1,8 +1,14 @@
 package expressionproblem.initial.`final`
 
-trait Expression[F[_], A] {
+trait Literal[F[_], A] {
   def literal(n: Int): F[A]
+}
+
+trait Negation[F[_], A] {
   def negation(e: F[A]): F[A]
+}
+
+trait Addition[F[_], A] {
   def addition(e1: F[A], e2: F[A]): F[A]
 }
 

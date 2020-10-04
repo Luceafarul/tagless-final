@@ -11,13 +11,21 @@ object Main extends App {
 
   Program
     .Expression
-    .dsl[Id, String](View.Expression.dsl)
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Negation.dsl,
+      View.Addition.dsl
+    )
     .run
     .tap(println)
 
   Program
     .Expression
-    .dsl[Id, Int](Evaluate.Expression.dsl)
+    .dsl[Id, Int](
+      Evaluate.Literal.dsl,
+      Evaluate.Negation.dsl,
+      Evaluate.Addition.dsl
+    )
     .run
     .tap(res => println(s"Evaluate: $res"))
 
@@ -25,13 +33,23 @@ object Main extends App {
 
   Program
     .Multiplication
-    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl)
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Negation.dsl,
+      View.Addition.dsl,
+      View.Multiplication.dsl
+    )
     .run
     .tap(println)
 
   Program
     .Multiplication
-    .dsl[Id, Int](Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+    .dsl[Id, Int](
+      Evaluate.Literal.dsl,
+      Evaluate.Negation.dsl,
+      Evaluate.Addition.dsl,
+      Evaluate.Multiplication.dsl
+    )
     .run
     .tap(res => println(s"Evaluate: $res"))
 
@@ -39,13 +57,23 @@ object Main extends App {
 
   Program
     .MultiplicationInTheMiddle
-    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl)
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Negation.dsl,
+      View.Addition.dsl,
+      View.Multiplication.dsl
+    )
     .run
     .tap(println)
 
   Program
     .MultiplicationInTheMiddle
-    .dsl[Id, Int](Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+    .dsl[Id, Int](
+      Evaluate.Literal.dsl,
+      Evaluate.Negation.dsl,
+      Evaluate.Addition.dsl,
+      Evaluate.Multiplication.dsl
+    )
     .run
     .tap(res => println(s"Evaluate: $res"))
 
@@ -53,14 +81,22 @@ object Main extends App {
 
   Program
     .Division
-    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl, View.Division.dsl)
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Negation.dsl,
+      View.Addition.dsl,
+      View.Multiplication.dsl,
+      View.Division.dsl
+    )
     .run
     .tap(println)
 
   Program
     .Division
     .dsl[Either[String, *], Int](
-      Evaluate.Expression.dsl,
+      Evaluate.Literal.dsl,
+      Evaluate.Negation.dsl,
+      Evaluate.Addition.dsl,
       Evaluate.Multiplication.dsl,
       Evaluate.Division.dsl
     )
@@ -71,14 +107,22 @@ object Main extends App {
 
   Program
     .DivisionInTheMiddle
-    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl, View.Division.dsl)
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Negation.dsl,
+      View.Addition.dsl,
+      View.Multiplication.dsl,
+      View.Division.dsl
+    )
     .run
     .tap(println)
 
   Program
     .DivisionInTheMiddle
     .dsl[Either[String, *], Int](
-      Evaluate.Expression.dsl,
+      Evaluate.Literal.dsl,
+      Evaluate.Negation.dsl,
+      Evaluate.Addition.dsl,
       Evaluate.Multiplication.dsl,
       Evaluate.Division.dsl
     )
