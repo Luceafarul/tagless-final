@@ -11,7 +11,7 @@ trait Controller {
 
 object Controller {
   def dsl(
-      boundary: Boundary,
+      boundary: BoundaryOld,
       pattern: DateTimeFormatter
     )(implicit
       fancyConsole: FancyConsole,
