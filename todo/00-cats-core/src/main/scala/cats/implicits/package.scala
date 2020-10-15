@@ -10,6 +10,12 @@ package object implicits {
     @inline def void: F[Unit] = Functor[F].map(fa)(_ => ())
   }
 
+  final implicit class FlatMapOps[F[_] : FlatMap, A](private val fa: F[A]) {
+    @inline def flatMap[B](afb: A => F[B]): F[B] = FlatMap[F].flatMap(fa)(afb)
+
+    @inline def >>[B](fb: F[B]): F[B] = FlatMap[F].flatMap(fa)(_ => fb)
+  }
+
   final implicit class SequenceOps[F[_] : Traverse, G[_] : Applicative, A](private val fga: F[G[A]]) {
     @inline def sequence: G[F[A]] = Traverse[F].sequence(fga)
   }

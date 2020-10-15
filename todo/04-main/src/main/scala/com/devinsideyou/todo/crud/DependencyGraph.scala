@@ -8,13 +8,13 @@ object DependencyGraph {
   def dsl(
       pattern: DateTimeFormatter
     )(implicit
-      fancyConsole: FancyConsole,
-      random: Random
-    ): Controller =
-    Controller.dsl(
+      fancyConsole: FancyConsoleOld,
+      random: RandomOld
+    ): ControllerOld =
+    ControllerOld.dsl(
       pattern = pattern,
       boundary = BoundaryOld.dsl(
-        gateway = InMemoryEntityGateway.dsl
+        gateway = InMemoryEntityGatewayOld.dsl
       )
     )
 }

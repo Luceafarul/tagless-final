@@ -1,40 +1,45 @@
-package com.devinsideyou
-package todo
+package com.devinsideyou.todo
 
-trait FancyConsole {
-  def getStrLnTrimmed: String
-  def getStrLnTrimmedWithPrompt(prompt: String): String
-  def putStrLn(line: String): Unit
-  def putSuccess(line: String): Unit
-  def putWarning(line: String): Unit
-  def putError(line: String): Unit
-  def putStrLnInColor(line: String)(color: String): Unit
+import cats._
+import cats.implicits._
+
+trait FancyConsole[F[_]] {
+  def getStrLnTrimmed: F[String]
+  def getStrLnTrimmedWithPrompt(prompt: String): F[String]
+  def putStrLn(line: String): F[Unit]
+  def putSuccess(line: String): F[Unit]
+  def putWarning(line: String): F[Unit]
+  def putError(line: String): F[Unit]
+  def putStrLnInColor(line: String)(color: String): F[Unit]
 }
 
 object FancyConsole {
-  implicit def dsl(implicit console: Console): FancyConsole =
-    new FancyConsole {
-      override def getStrLnTrimmed: String =
-        console.getStrLn.pipe(_.trim)
+  def apply[F[_] : FancyConsole]: FancyConsole[F] = implicitly[FancyConsole[F]]
 
-      override def getStrLnTrimmedWithPrompt(prompt: String): String =
-        console.getStrLnWithPrompt(prompt + " ").pipe(_.trim)
+  implicit def dsl[F[_] : Console : Functor]: FancyConsole[F] =
+    new FancyConsole[F] {
+      override def getStrLnTrimmed: F[String] =
+        Console[F].getStrLn.map(_.trim)
 
-      override def putStrLn(line: String): Unit =
-        console.putStrLn(line)
-      override def putStrLnInColor(line: String)(color: String): Unit =
-        console.putStrLn(inColor(line)(color))
+      override def getStrLnTrimmedWithPrompt(prompt: String): F[String] =
+        Console[F].getStrLnWithPrompt(prompt + " ").map(_.trim)
+
+      override def putStrLn(line: String): F[Unit] =
+        Console[F].putStrLn(line)
+
+      override def putStrLnInColor(line: String)(color: String): F[Unit] =
+        Console[F].putStrLn(inColor(line)(color))
 
       private def inColor(line: String)(color: String): String =
         color + line + scala.Console.RESET
 
-      override def putSuccess(line: String): Unit =
+      override def putSuccess(line: String): F[Unit] =
         putStrLnInColor(line)(scala.Console.GREEN)
 
-      override def putWarning(line: String): Unit =
+      override def putWarning(line: String): F[Unit] =
         putStrLnInColor(line)(scala.Console.YELLOW)
 
-      override def putError(line: String): Unit =
+      override def putError(line: String): F[Unit] =
         putStrLnInColor(line)(scala.Console.RED)
     }
 }

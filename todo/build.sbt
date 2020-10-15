@@ -63,6 +63,7 @@ lazy val delivery =
   project
     .in(file("03-delivery"))
     .dependsOn(core % Cctt)
+    .dependsOn(`cats-effect` % Cctt)
     .settings(commonSettings: _*)
 
 lazy val persistence =
