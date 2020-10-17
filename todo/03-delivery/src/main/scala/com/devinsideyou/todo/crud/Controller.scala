@@ -1,9 +1,11 @@
 package com.devinsideyou.todo.crud
 
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import cats._
 import cats.implicits._
+import com.devinsideyou.Todo
 import com.devinsideyou.todo.{FancyConsole, Random}
 
 trait Controller[F[_]] {
@@ -11,7 +13,7 @@ trait Controller[F[_]] {
 }
 
 object Controller {
-  def dsl[F[_] : Random : FancyConsole : FlatMap : Functor](boundary: Boundary[F], pattern: DateTimeFormatter): Controller[F] =
+  def dsl[F[_] : Random : FancyConsole : Monad](boundary: Boundary[F], pattern: DateTimeFormatter): Controller[F] =
     new Controller[F] {
       override val run: F[Unit] = {
         val colors: Vector[String] =
@@ -51,8 +53,161 @@ object Controller {
         def prompt: F[String] =
           menu.flatMap(FancyConsole[F].getStrLnTrimmedWithPrompt)
 
-        ???
+        prompt.flatMap {
+          case "c" => create.as(true)
+          case "d" => delete.as(true)
+          case "da" => deleteAll.as(true)
+          case "sa" => showAll.as(true)
+          case "sd" => searchByPartialDescription.as(true)
+          case "sid" => searchById.as(true)
+          case "ud" => updateDescription.as(true)
+          case "udl" => updateDeadline.as(true)
+          case "e" | "q" | "exit" | "quit" => exit.as(true)
+          case _ => true.pure[F]
+        }.iterateWhile(identity).void
       }
+
+      private val create: F[Unit] = descriptionPrompt.flatMap { description =>
+        withDeadlinePrompt { deadline =>
+          boundary.createOne(Todo.Data(description, deadline)) >>
+            FancyConsole[F].putSuccess("Successfully created the new todo.")
+        }
+      }
+
+      private val delete: F[Unit] = withIdPrompt { id =>
+        withReadOne(id) { todo =>
+          boundary.deleteOne(todo) >> FancyConsole[F].putSuccess("Successfully deleted the todo.")
+        }
+      }
+
+      private val deleteAll: F[Unit] =
+        boundary.deleteAll >> FancyConsole[F].putSuccess("Successfully deleted all todos.")
+
+      private val showAll: F[Unit] =
+        boundary.readAll.flatMap(displayZeroOrMany)
+
+      private val searchByPartialDescription: F[Unit] =
+        descriptionPrompt
+          .flatMap(boundary.readManyByPartialDescription)
+          .flatMap(displayZeroOrMany)
+
+      private val searchById: F[Unit] = withIdPrompt { id =>
+        boundary
+          .readOneById(id)
+          .map(_.to(Vector))
+          .flatMap(displayZeroOrMany)
+      }
+
+      private val updateDescription: F[Unit] = withIdPrompt { id =>
+        withReadOne(id) { todo =>
+          descriptionPrompt.flatMap { description =>
+            boundary.updateOne(todo.withUpdatedDescription(description)) >>
+              FancyConsole[F].putSuccess("Successfully updated the description.")
+          }
+        }
+      }
+
+      private val updateDeadline: F[Unit] = withIdPrompt { id =>
+        withReadOne(id) { todo =>
+          withDeadlinePrompt { deadline =>
+            boundary.updateOne(todo.withUpdatedDeadline(deadline)) >>
+              FancyConsole[F].putSuccess("Successfully updated the deadline.")
+          }
+        }
+      }
+
+      private val exit: F[Unit] =
+        FancyConsole[F].putStrLn("\nUntil next time!\n")
+
+      private def descriptionPrompt: F[String] =
+        FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter a description:")
+
+      private def withDeadlinePrompt(onSuccess: LocalDateTime => F[Unit]): F[Unit] =
+        deadlinePrompt.map(toLocalDateTime).flatMap {
+          case Right(deadline) => onSuccess(deadline)
+          case Left(error) => FancyConsole[F].putError(error)
+        }
+
+      private def deadlinePrompt: F[String] =
+        FancyConsole[F].getStrLnTrimmedWithPrompt(
+          s"Please enter a deadline in the following format ${DeadlinePromptFormat()}:"
+        )
+
+      private def DeadlinePromptFormat(): String =
+        inColor(DeadlinePromptPattern())(scala.Console.MAGENTA)
+
+      private def DeadlinePromptPattern(): String =
+        "yyyy-M-d H:m"
+
+      private def toLocalDateTime(input: String): Either[String, LocalDateTime] = {
+        val formatter = DateTimeFormatter.ofPattern(DeadlinePromptPattern())
+
+        scala
+          .util
+          .Try(LocalDateTime.parse(input, formatter))
+          .toEither
+          .left
+          .map { _ =>
+            s"\n${inColor(input)(scala.Console.YELLOW)} does not match the required format ${DeadlinePromptFormat()}.${scala.Console.RESET}"
+          }
+      }
+
+      private def idPrompt: F[String] =
+        FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter the id:")
+
+      private def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
+        idPrompt.map(toId).flatMap {
+          case Right(id) => onValidId(id)
+          case Left(error) => FancyConsole[F].putError(error)
+        }
+
+      private def toId(userInput: String): Either[String, String] =
+        if (userInput.isEmpty || userInput.contains(" "))
+          Left(s"\n${scala.Console.YELLOW + userInput + scala.Console.RED} is not a valid id.${scala.Console.RESET}")
+        else
+          Right(userInput)
+
+      private def withReadOne(id: String)(onFound: Todo.Existing => F[Unit]): F[Unit] =
+        boundary
+          .readOneById(id)
+          .flatMap {
+            case Some(todo) => onFound(todo)
+            case None => displayNoTodosFoundMessage()
+          }
+
+      private def displayNoTodosFoundMessage(): F[Unit] =
+        FancyConsole[F].putWarning("\nNo todos found!")
+
+      private def displayZeroOrMany(todos: Vector[Todo.Existing]): F[Unit] =
+        if (todos.isEmpty) displayNoTodosFoundMessage()
+        else {
+          val uxMatters = if (todos.size == 1) "todo" else "todos"
+
+          val renderedSize: String =
+            inColor(todos.size.toString)(scala.Console.GREEN)
+
+          FancyConsole[F].putStrLn(s"\nFound $renderedSize $uxMatters:\n") >> {
+            todos
+              .sortBy(_.deadline)
+              .map(renderedWithPattern)
+              .traverse(FancyConsole[F].putStrLn)
+              .void
+          }
+        }
+
+      private def renderedWithPattern(todo: Todo.Existing): String = {
+        def renderedId: String =
+          inColor(todo.id.toString)(scala.Console.GREEN)
+
+        def renderedDescription: String =
+          inColor(todo.description)(scala.Console.MAGENTA)
+
+        def renderedDeadline: String =
+          inColor(todo.deadline.format(pattern))(scala.Console.YELLOW)
+
+        s"$renderedId $renderedDescription is due on $renderedDeadline."
+      }
+
     }
 
   private def inColor(line: String)(color: String): String =

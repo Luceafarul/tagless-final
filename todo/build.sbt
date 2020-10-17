@@ -10,8 +10,9 @@ ThisBuild / scalacOptions ++= Seq(
   "-feature",
   "-language:_",
   "-unchecked",
+  "Wvalue-discard",
   // "-Wunused:_",
-  // "-Xfatal-warnings",
+  "-Xfatal-warnings",
   "-Ymacro-annotations"
 )
 
@@ -81,7 +82,7 @@ lazy val main =
     .settings(commonSettings: _*)
 
 lazy val commonSettings = Seq(
-//  addCompilerPlugin(org.augustjune.`context-applied`),
+  //  addCompilerPlugin(org.augustjune.`context-applied`),
   addCompilerPlugin(org.typelevel.`kind-projector`),
   Compile / console / scalacOptions --= Seq(
     "-Wunused:_",
