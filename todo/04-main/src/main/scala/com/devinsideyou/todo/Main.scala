@@ -1,12 +1,7 @@
 package com.devinsideyou.todo
 
-import java.time.format.DateTimeFormatter
+import cats.effect.IO
 
 object Main extends App {
-  val crudController: crud.ControllerOld =
-    crud
-      .DependencyGraphOld
-      .dsl(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy HH:mm"))
-
-  crudController.run()
+  Program.dsl[IO].unsafeRunSync()
 }

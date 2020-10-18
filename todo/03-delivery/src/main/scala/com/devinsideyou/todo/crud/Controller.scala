@@ -9,7 +9,7 @@ import com.devinsideyou.Todo
 import com.devinsideyou.todo.{FancyConsole, Random}
 
 trait Controller[F[_]] {
-  def run: F[Unit]
+  def program: F[Unit]
 }
 
 object Controller {
@@ -20,7 +20,7 @@ object Controller {
       pattern: DateTimeFormatter
     ): Controller[F] =
     new Controller[F] {
-      override val run: F[Unit] = {
+      override val program: F[Unit] = {
         val colors: Vector[String] =
           Vector(
             scala.Console.BLUE,
@@ -67,7 +67,7 @@ object Controller {
           case "sid" => searchById.as(true)
           case "ud" => updateDescription.as(true)
           case "udl" => updateDeadline.as(true)
-          case "e" | "q" | "exit" | "quit" => exit.as(true)
+          case "e" | "q" | "exit" | "quit" => exit.as(false)
           case _ => true.pure[F]
         }.iterateWhile(identity).void
       }
@@ -157,7 +157,7 @@ object Controller {
           }
       }
 
-      private def idPrompt: F[String] =
+      private val idPrompt: F[String] =
         console.getStrLnTrimmedWithPrompt("Please enter the id:")
 
       private def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
