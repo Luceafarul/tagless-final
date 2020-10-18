@@ -13,7 +13,12 @@ trait Controller[F[_]] {
 }
 
 object Controller {
-  def dsl[F[_] : Random : FancyConsole : Monad](boundary: Boundary[F], pattern: DateTimeFormatter): Controller[F] =
+  def dsl[F[_] : Monad](
+      boundary: Boundary[F],
+      random: Random[F],
+      console: FancyConsole[F],
+      pattern: DateTimeFormatter
+    ): Controller[F] =
     new Controller[F] {
       override val run: F[Unit] = {
         val colors: Vector[String] =
@@ -27,7 +32,7 @@ object Controller {
           )
 
         def randomColor: F[String] =
-          Random[F].nextInt(colors.size).map(colors)
+          random.nextInt(colors.size).map(colors)
 
         def hyphens: F[String] =
           randomColor.map(color => inColor("─" * 100)(color))
@@ -51,7 +56,7 @@ object Controller {
         }
 
         def prompt: F[String] =
-          menu.flatMap(FancyConsole[F].getStrLnTrimmedWithPrompt)
+          menu.flatMap(console.getStrLnTrimmedWithPrompt)
 
         prompt.flatMap {
           case "c" => create.as(true)
@@ -70,18 +75,18 @@ object Controller {
       private val create: F[Unit] = descriptionPrompt.flatMap { description =>
         withDeadlinePrompt { deadline =>
           boundary.createOne(Todo.Data(description, deadline)) >>
-            FancyConsole[F].putSuccess("Successfully created the new todo.")
+            console.putSuccess("Successfully created the new todo.")
         }
       }
 
       private val delete: F[Unit] = withIdPrompt { id =>
         withReadOne(id) { todo =>
-          boundary.deleteOne(todo) >> FancyConsole[F].putSuccess("Successfully deleted the todo.")
+          boundary.deleteOne(todo) >> console.putSuccess("Successfully deleted the todo.")
         }
       }
 
       private val deleteAll: F[Unit] =
-        boundary.deleteAll >> FancyConsole[F].putSuccess("Successfully deleted all todos.")
+        boundary.deleteAll >> console.putSuccess("Successfully deleted all todos.")
 
       private val showAll: F[Unit] =
         boundary.readAll.flatMap(displayZeroOrMany)
@@ -102,7 +107,7 @@ object Controller {
         withReadOne(id) { todo =>
           descriptionPrompt.flatMap { description =>
             boundary.updateOne(todo.withUpdatedDescription(description)) >>
-              FancyConsole[F].putSuccess("Successfully updated the description.")
+              console.putSuccess("Successfully updated the description.")
           }
         }
       }
@@ -111,25 +116,25 @@ object Controller {
         withReadOne(id) { todo =>
           withDeadlinePrompt { deadline =>
             boundary.updateOne(todo.withUpdatedDeadline(deadline)) >>
-              FancyConsole[F].putSuccess("Successfully updated the deadline.")
+              console.putSuccess("Successfully updated the deadline.")
           }
         }
       }
 
       private val exit: F[Unit] =
-        FancyConsole[F].putStrLn("\nUntil next time!\n")
+        console.putStrLn("\nUntil next time!\n")
 
       private def descriptionPrompt: F[String] =
-        FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter a description:")
+        console.getStrLnTrimmedWithPrompt("Please enter a description:")
 
       private def withDeadlinePrompt(onSuccess: LocalDateTime => F[Unit]): F[Unit] =
         deadlinePrompt.map(toLocalDateTime).flatMap {
           case Right(deadline) => onSuccess(deadline)
-          case Left(error) => FancyConsole[F].putError(error)
+          case Left(error) => console.putError(error)
         }
 
       private def deadlinePrompt: F[String] =
-        FancyConsole[F].getStrLnTrimmedWithPrompt(
+        console.getStrLnTrimmedWithPrompt(
           s"Please enter a deadline in the following format ${DeadlinePromptFormat()}:"
         )
 
@@ -153,12 +158,12 @@ object Controller {
       }
 
       private def idPrompt: F[String] =
-        FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter the id:")
+        console.getStrLnTrimmedWithPrompt("Please enter the id:")
 
       private def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
         idPrompt.map(toId).flatMap {
           case Right(id) => onValidId(id)
-          case Left(error) => FancyConsole[F].putError(error)
+          case Left(error) => console.putError(error)
         }
 
       private def toId(userInput: String): Either[String, String] =
@@ -176,7 +181,7 @@ object Controller {
           }
 
       private def displayNoTodosFoundMessage(): F[Unit] =
-        FancyConsole[F].putWarning("\nNo todos found!")
+        console.putWarning("\nNo todos found!")
 
       private def displayZeroOrMany(todos: Vector[Todo.Existing]): F[Unit] =
         if (todos.isEmpty) displayNoTodosFoundMessage()
@@ -186,11 +191,11 @@ object Controller {
           val renderedSize: String =
             inColor(todos.size.toString)(scala.Console.GREEN)
 
-          FancyConsole[F].putStrLn(s"\nFound $renderedSize $uxMatters:\n") >> {
+          console.putStrLn(s"\nFound $renderedSize $uxMatters:\n") >> {
             todos
               .sortBy(_.deadline)
               .map(renderedWithPattern)
-              .traverse(FancyConsole[F].putStrLn)
+              .traverse(console.putStrLn)
               .void
           }
         }
