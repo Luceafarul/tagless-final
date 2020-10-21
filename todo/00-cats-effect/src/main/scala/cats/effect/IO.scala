@@ -17,9 +17,9 @@ object IO {
       ab(a)
     }
 
-    override def flatMap[A, B](fa: IO[A])(ab: A => IO[B]): IO[B] = () => {
+    override def flatMap[A, B](fa: IO[A])(afb: A => IO[B]): IO[B] = () => {
       val a = fa.unsafeRunSync()
-      val fb = ab(a)
+      val fb = afb(a)
       fb.unsafeRunSync()
     }
 

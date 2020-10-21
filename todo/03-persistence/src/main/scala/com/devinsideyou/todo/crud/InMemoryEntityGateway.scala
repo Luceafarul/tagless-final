@@ -1,12 +1,13 @@
 package com.devinsideyou.todo.crud
 
-import com.devinsideyou.Todo
-import cats.effect._
+import cats.Monad
+import cats.effect.concurrent.Ref
 import cats.implicits._
+import com.devinsideyou.Todo
 
 object InMemoryEntityGateway {
-  def dsl[F[_] : Sync]: EntityGateway[F] = new EntityGateway[F] {
-    private val statement: Statement[F] = Statement.dsl
+  def dsl[F[_] : Monad](state: Ref[F, Vector[Todo.Existing]]): EntityGateway[F] = new EntityGateway[F] {
+    private val statement: Statement[F] = Statement.dsl(state)
 
     override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] =
       todos.traverse {

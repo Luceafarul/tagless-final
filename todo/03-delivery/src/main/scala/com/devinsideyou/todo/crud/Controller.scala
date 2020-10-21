@@ -157,7 +157,7 @@ object Controller {
           }
       }
 
-      private val idPrompt: F[String] =
+      private def idPrompt: F[String] =
         console.getStrLnTrimmedWithPrompt("Please enter the id:")
 
       private def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
@@ -202,7 +202,7 @@ object Controller {
 
       private def renderedWithPattern(todo: Todo.Existing): String = {
         def renderedId: String =
-          inColor(todo.id.toString)(scala.Console.GREEN)
+          inColor(todo.id)(scala.Console.GREEN)
 
         def renderedDescription: String =
           inColor(todo.description)(scala.Console.MAGENTA)
