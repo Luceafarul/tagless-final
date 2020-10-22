@@ -3,15 +3,19 @@ package com.devinsideyou.todo
 import java.time.format.DateTimeFormatter
 
 import cats.effect.Sync
+import cats.implicits._
+import com.devinsideyou.todo.Program.pattern
+import com.devinsideyou.todo.crud.DependencyGraph
 
 object Program {
   def dsl[F[_] : Sync]: F[Unit] = {
-    val crudController: crud.Controller[F] =
-      crud
-        .DependencyGraph
-        .dsl(pattern, Random.dsl, Console.dsl)
-
-    val program: F[Unit] = crudController.program
+    val program: F[Unit] =
+      for {
+        console <- Console.dsl
+        random <- Random.dsl
+        controller <- crud.DependencyGraph.dsl(pattern, random, console)
+        _ <- controller.program
+      } yield ()
 
     println(s"[${scala.Console.YELLOW}warn${scala.Console.RESET}] Any output before this line is a bug!")
 

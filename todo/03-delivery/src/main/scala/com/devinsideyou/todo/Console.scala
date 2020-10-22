@@ -4,15 +4,18 @@ import cats.effect.Sync
 
 trait Console[F[_]] {
   def getStrLn: F[String]
+
   def getStrLnWithPrompt(prompt: String): F[String]
+
   def putStrLn(line: String): F[Unit]
+
   def putErrLn(line: String): F[Unit]
 }
 
 object Console {
-  def apply[F[_]: Console]: Console[F] = implicitly[Console[F]]
+  def apply[F[_] : Console]: Console[F] = implicitly[Console[F]]
 
-  def dsl[F[_]: Sync]: Console[F] =
+  def dsl[F[_] : Sync]: F[Console[F]] = Sync[F].delay {
     new Console[F] {
 
       override def getStrLn: F[String] =
@@ -27,4 +30,5 @@ object Console {
       override def putErrLn(line: String): F[Unit] =
         Sync[F].delay(scala.Console.err.println(line))
     }
+  }
 }
