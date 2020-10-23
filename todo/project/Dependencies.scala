@@ -10,6 +10,23 @@ object Dependencies {
     }
   }
 
+  case object dev {
+    case object zio {
+      val zio =
+        "dev.zio" %% "zio" % "1.0.3"
+
+      val `zio-interop-cats` =
+        "dev.zio" %% "zio-interop-cats" % "2.2.0.1"
+    }
+  }
+
+  case object io {
+    case object monix {
+      val `monix-eval` =
+        "io.monix" %% "monix-eval" % "3.2.2"
+    }
+  }
+
   case object org {
     case object scalacheck {
       val scalacheck =
@@ -27,6 +44,12 @@ object Dependencies {
     }
 
     case object typelevel {
+      val `cats-core` =
+        "org.typelevel" %% "cats-core" % "2.1.1"
+
+      val `cats-effect` =
+        "org.typelevel" %% "cats-effect" % "2.2.0"
+
       val `kind-projector` =
         "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
     }
