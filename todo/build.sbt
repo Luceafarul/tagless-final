@@ -27,7 +27,9 @@ lazy val `todo` =
       core,
       delivery,
       persistence,
-      main
+      `persistence-postgres-skunk`,
+      main,
+      `main-postgres-skunk`
     )
 
 lazy val `cats-core` =
@@ -90,6 +92,18 @@ lazy val persistence =
     )
     .settings(commonSettings: _*)
 
+lazy val `persistence-postgres-skunk` =
+  project
+    .in(file("03-persistence-postgres-skunk"))
+    .dependsOn(core % Cctt)
+    .settings(
+      libraryDependencies ++= Seq(
+        org.tpolecat.`skunk-core`,
+        org.typelevel.`cats-effect`
+      )
+    )
+    .settings(commonSettings: _*)
+
 lazy val main =
   project
     .in(file("04-main"))
@@ -101,6 +115,22 @@ lazy val main =
         dev.zio.`zio-interop-cats`,
         io.monix.`monix-eval`,
         org.typelevel.`cats-effect`
+      )
+    )
+    .settings(commonSettings: _*)
+
+lazy val `main-postgres-skunk` =
+  project
+    .in(file("04-main-postgres-skunk"))
+    .dependsOn(delivery % Cctt)
+    .dependsOn(`persistence-postgres-skunk` % Cctt)
+    .settings(
+      libraryDependencies ++= Seq(
+        dev.zio.zio,
+        dev.zio.`zio-interop-cats`,
+        io.monix.`monix-eval`,
+        org.typelevel.`cats-effect`,
+        org.tpolecat.`skunk-core`
       )
     )
     .settings(commonSettings: _*)
