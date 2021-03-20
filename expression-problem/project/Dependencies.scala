@@ -28,7 +28,7 @@ object Dependencies {
 
     case object typelevel {
       val `kind-projector` =
-        "org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full
+        "org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full
     }
   }
 }
