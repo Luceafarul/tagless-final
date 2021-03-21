@@ -11,8 +11,8 @@ object Main extends App {
 
   import `final`._
 
-  println(new Program(Eval).repr)
-  println(new Program(View).repr)
+  println(Program.dsl(Eval.dsl).repr)
+  println(Program.dsl(View.dsl).repr)
 
   println("─" * 100)
 }
