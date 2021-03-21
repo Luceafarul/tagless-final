@@ -4,17 +4,17 @@ import devinsideyou.expressionproblem.initial.Expr.Negation
 import devinsideyou.expressionproblem.initial.Expr.Addition
 
 object View {
-  def apply(expr: Expr): String =
+  def interpreter(expr: Expr): String =
     expr match {
       case Literal(x)            => s"$x"
-      case Negation(e)           => s"(-${apply(e)})"
-      case Addition(left, right) => s"(${apply(left)} + ${apply(right)})"
+      case Negation(e)           => s"(-${interpreter(e)})"
+      case Addition(left, right) => s"(${interpreter(left)} + ${interpreter(right)})"
     }
 
   def prefix(expr: Expr): String =
     expr match {
       case Literal(x)            => s"$x"
-      case Negation(e)           => s"( - ${apply(e)})"
-      case Addition(left, right) => s"( + ${apply(left)} ${apply(right)})"
+      case Negation(e)           => s"( - ${prefix(e)})"
+      case Addition(left, right) => s"( + ${prefix(left)} ${prefix(right)})"
     }
 }
