@@ -6,7 +6,13 @@ object Main extends App {
 
   println(initial.Eval(initial.Program.exp))
   println(initial.View(initial.Program.exp))
-  println(initial.View.prefix(initial.Program.exp))
+
+  println("─" * 100)
+
+  import `final`._
+
+  println(new Program(Eval).repr)
+  println(new Program(View).repr)
 
   println("─" * 100)
 }
