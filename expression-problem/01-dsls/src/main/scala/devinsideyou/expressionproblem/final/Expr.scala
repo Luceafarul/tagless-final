@@ -1,7 +1,7 @@
 package devinsideyou.expressionproblem.`final`
 
-trait Expr[Repr] {
-  def literal(x: Int): Repr
-  def negation(x: Repr): Repr
-  def addition(left: Repr, right: Repr): Repr
+trait Expr[A] {
+  def literal(x: Int): A
+  def negation(x: A): A
+  def addition(left: A, right: A): A
 }

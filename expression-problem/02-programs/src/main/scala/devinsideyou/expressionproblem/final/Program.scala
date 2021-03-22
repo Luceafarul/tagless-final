@@ -1,15 +1,15 @@
 package devinsideyou.expressionproblem.`final`
 
-trait Program[Repr] {
-  def repr: Repr
+trait Program[A] {
+  def repr: A
 }
 
 object Program {
-  def dsl[Repr](expr: Expr[Repr]): Program[Repr] =
-    new Program[Repr] {
+  def dsl[A](expr: Expr[A]): Program[A] =
+    new Program[A] {
       import expr._
 
-      val repr: Repr = addition(
+      val repr: A = addition(
         literal(16),
         negation(
           addition(
