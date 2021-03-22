@@ -14,4 +14,11 @@ object Evaluate {
       def multiply(left: Int, right: Int): Int = left * right
     }
   }
+
+    object Division {
+    val dsl: Division[Int] = new Division[Int] {
+      def divide(left: Int, right: Int): Option[Int] = 
+        if (right == 0) None else Some(left / right)
+    }
+  }
 }

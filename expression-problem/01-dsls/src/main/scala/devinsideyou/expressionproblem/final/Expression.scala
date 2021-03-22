@@ -9,3 +9,7 @@ trait Expression[A] {
 trait Multiplication[A] {
   def multiply(left: A, right: A): A
 }
+
+trait Division[A] {
+  def divide(left: A, right: A): Option[A]
+}

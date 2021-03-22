@@ -14,4 +14,11 @@ object View {
       def multiply(left: String, right: String): String = s"($left * $right)"
     }
   }
+
+  object Division {
+    val dsl: Division[String] = new Division[String] {
+      def divide(left: String, right: String): Option[String] =
+        if (right == 0) None else Some(s"($left / $right)")
+    }
+  }
 }
