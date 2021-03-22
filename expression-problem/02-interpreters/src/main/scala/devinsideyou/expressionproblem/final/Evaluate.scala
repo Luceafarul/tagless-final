@@ -3,22 +3,31 @@ package devinsideyou.expressionproblem.`final`
 object Evaluate {
   object Expression {
     val dsl: Expression[Int] = new Expression[Int] {
-      def literal(x: Int): Int = x
-      def negation(x: Int): Int = -x
-      def addition(left: Int, right: Int): Int = left + right
+      def literal(x: Int): Option[Int] = Some(x)
+      def negation(x: Option[Int]): Option[Int] = x.map(x => -x)
+      def addition(left: Option[Int], right: Option[Int]): Option[Int] =
+        left.zip(right).map {
+          case (left, right) => left + right
+        }
     }
   }
 
   object Multiplication {
     val dsl: Multiplication[Int] = new Multiplication[Int] {
-      def multiply(left: Int, right: Int): Int = left * right
+      def multiply(left: Option[Int], right: Option[Int]): Option[Int] =
+        left.zip(right).map {
+          case (left, right) => left * right
+        }
     }
   }
 
-    object Division {
+  object Division {
     val dsl: Division[Int] = new Division[Int] {
-      def divide(left: Int, right: Int): Option[Int] = 
-        if (right == 0) None else Some(left / right)
+      def divide(left: Option[Int], right: Option[Int]): Option[Int] =
+        left.zip(right).flatMap {
+          case (_, 0)        => None
+          case (left, right) => Some(left / right)
+        }
     }
   }
 }
