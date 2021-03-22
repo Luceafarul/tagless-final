@@ -11,8 +11,53 @@ object Main extends App {
 
   import `final`._
 
-  println(Program.dsl(Eval.dsl).repr)
-  println(Program.dsl(View.dsl).repr)
+  println(Program.Expression.dsl(Evaluate.Expression.dsl).run)
+  println(Program.Expression.dsl(View.Expression.dsl).run)
+
+  println("─" * 100)
+
+  println(
+    Program
+      .Multiplication
+      .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+      .run
+  )
+  println(
+    Program
+      .Multiplication
+      .dsl(View.Expression.dsl, View.Multiplication.dsl)
+      .run
+  )
+
+  println("─" * 100)
+
+    println(
+    Program
+      .Multiplication
+      .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+      .run
+  )
+  println(
+    Program
+      .Multiplication
+      .dsl(View.Expression.dsl, View.Multiplication.dsl)
+      .run
+  )
+
+  println("─" * 100)
+
+      println(
+    Program
+      .MultiplicationInTheMiddle
+      .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+      .run
+  )
+  println(
+    Program
+      .MultiplicationInTheMiddle
+      .dsl(View.Expression.dsl, View.Multiplication.dsl)
+      .run
+  )
 
   println("─" * 100)
 }
