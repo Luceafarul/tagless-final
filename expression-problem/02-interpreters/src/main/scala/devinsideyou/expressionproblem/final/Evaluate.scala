@@ -30,4 +30,22 @@ object Evaluate {
         }
     }
   }
+
+  object DivisionEither {
+    type EitherStringOr[A] = Either[String, A]
+    val dsl: Division[EitherStringOr, Int] = new Division[EitherStringOr, Int] {
+      def divide(
+          left: EitherStringOr[Int],
+          right: EitherStringOr[Int]
+        ): EitherStringOr[Int] =
+        left.flatMap { left =>
+          right.flatMap { right =>
+            (left, right) match {
+              case (_, 0)        => Left("Division by zero")
+              case (left, right) => Right(left / right)
+            }
+          }
+        }
+    }
+  }
 }
