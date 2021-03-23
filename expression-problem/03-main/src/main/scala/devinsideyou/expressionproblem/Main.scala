@@ -2,6 +2,9 @@ package devinsideyou.expressionproblem
 
 import scala.util.chaining._
 
+import cats._
+import cats.instances.all._
+
 object Main extends App {
   println("─" * 100)
 
@@ -12,20 +15,15 @@ object Main extends App {
 
   import `final`._
 
-  println(Program.Expression.dsl(Evaluate.Expression.dsl).run)
-  println(Program.Expression.dsl(View.Expression.dsl).run)
-
-  println("─" * 100)
-
   Program
-    .Multiplication
-    .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+    .Expression
+    .dsl(Evaluate.Expression.dsl[Id])
     .run
     .tap(println)
 
   Program
-    .Multiplication
-    .dsl(View.Expression.dsl, View.Multiplication.dsl)
+    .Expression
+    .dsl(View.Expression.dsl[Id])
     .run
     .tap(println)
 
@@ -33,13 +31,13 @@ object Main extends App {
 
   Program
     .Multiplication
-    .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+    .dsl[Id, Int](Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
     .run
     .tap(println)
 
   Program
     .Multiplication
-    .dsl(View.Expression.dsl, View.Multiplication.dsl)
+    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl)
     .run
     .tap(println)
 
@@ -47,13 +45,13 @@ object Main extends App {
 
   Program
     .MultiplicationInTheMiddle
-    .dsl(Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
+    .dsl[Id, Int](Evaluate.Expression.dsl, Evaluate.Multiplication.dsl)
     .run
     .tap(println)
 
   Program
     .MultiplicationInTheMiddle
-    .dsl(View.Expression.dsl, View.Multiplication.dsl)
+    .dsl[Id, String](View.Expression.dsl, View.Multiplication.dsl)
     .run
     .tap(println)
 
@@ -61,7 +59,7 @@ object Main extends App {
 
   Program
     .Division
-    .dsl(
+    .dsl[Either[String, *], Int](
       Evaluate.Expression.dsl,
       Evaluate.Multiplication.dsl,
       Evaluate.Division.dsl
@@ -71,7 +69,11 @@ object Main extends App {
 
   Program
     .Division
-    .dsl(View.Expression.dsl, View.Multiplication.dsl, View.Division.dsl)
+    .dsl[Id, String](
+      View.Expression.dsl,
+      View.Multiplication.dsl,
+      View.Division.dsl
+    )
     .run
     .tap(println)
 
@@ -79,7 +81,7 @@ object Main extends App {
 
   Program
     .DivisionInTheMiddle
-    .dsl(
+    .dsl[Either[String, *], Int](
       Evaluate.Expression.dsl,
       Evaluate.Multiplication.dsl,
       Evaluate.Division.dsl
@@ -89,7 +91,11 @@ object Main extends App {
 
   Program
     .DivisionInTheMiddle
-    .dsl(View.Expression.dsl, View.Multiplication.dsl, View.Division.dsl)
+    .dsl[Id, String](
+      View.Expression.dsl,
+      View.Multiplication.dsl,
+      View.Division.dsl
+    )
     .run
     .tap(println)
 

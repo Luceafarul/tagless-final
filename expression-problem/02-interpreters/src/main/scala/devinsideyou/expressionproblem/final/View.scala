@@ -1,35 +1,35 @@
 package devinsideyou.expressionproblem.`final`
 
+import cats._
+import cats.syntax.all._
+
 object View {
   object Expression {
-    val dsl: Expression[Option, String] = new Expression[Option, String] {
-      def literal(x: Int): Option[String] = Some(s"$x")
-      def negation(x: Option[String]): Option[String] = x.map(x => s"(-$x)")
-      def addition(
-          left: Option[String],
-          right: Option[String]
-        ): Option[String] =
-        left.zip(right).map { case (left, right) => s"($left + $right)" }
-    }
+    def dsl[F[_]: Applicative]: Expression[F, String] =
+      new Expression[F, String] {
+        def literal(x: Int): F[String] = s"$x".pure[F]
+        def negation(x: F[String]): F[String] = x.map(x => s"(-$x)")
+        def addition(left: F[String], right: F[String]): F[String] =
+          (left, right).mapN { case (left, right) => s"($left + $right)" }
+      }
   }
 
   object Multiplication {
-    val dsl: Multiplication[Option, String] = new Multiplication[Option, String] {
-      def multiply(
-          left: Option[String],
-          right: Option[String]
-        ): Option[String] =
-        left.zip(right).map { case (left, right) => s"($left * $right)" }
-    }
+    def dsl[F[_]: Apply]: Multiplication[F, String] =
+      new Multiplication[F, String] {
+        def multiply(left: F[String], right: F[String]): F[String] =
+          (left, right).mapN { case (left, right) => s"($left * $right)" }
+      }
   }
 
   object Division {
-    val dsl: Division[Option, String] = new Division[Option, String] {
-      def divide(left: Option[String], right: Option[String]): Option[String] =
-        for {
-          l <- left
-          r <- right
-        } yield s"($l / $r)"
-    }
+    def dsl[F[_]: FlatMap]: Division[F, String] =
+      new Division[F, String] {
+        def divide(left: F[String], right: F[String]): F[String] =
+          for {
+            l <- left
+            r <- right
+          } yield s"($l / $r)"
+      }
   }
 }
