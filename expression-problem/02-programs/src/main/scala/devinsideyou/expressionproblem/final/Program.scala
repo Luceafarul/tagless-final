@@ -6,7 +6,7 @@ trait Program[A] {
 
 object Program {
   object Expression {
-    def dsl[A](implicit expression: Expression[A]): Program[A] =
+    def dsl[A](implicit expression: Expression[Option, A]): Program[A] =
       new Program[A] {
         import expression._
 
@@ -25,8 +25,8 @@ object Program {
   object Multiplication {
     def dsl[A](
         implicit
-        expression: Expression[A],
-        multiplication: Multiplication[A]
+        expression: Expression[Option, A],
+        multiplication: Multiplication[Option, A]
       ): Program[A] =
       new Program[A] {
         import multiplication._
@@ -42,8 +42,8 @@ object Program {
   object MultiplicationInTheMiddle {
     def dsl[A](
         implicit
-        expression: Expression[A],
-        multiplication: Multiplication[A]
+        expression: Expression[Option, A],
+        multiplication: Multiplication[Option, A]
       ): Program[A] =
       new Program[A] {
         import multiplication._
@@ -67,9 +67,9 @@ object Program {
   object Division {
     def dsl[A](
         implicit
-        expression: Expression[A],
-        multiplication: Multiplication[A],
-        division: Division[A]
+        expression: Expression[Option, A],
+        multiplication: Multiplication[Option, A],
+        division: Division[Option, A]
       ): Program[A] =
       new Program[A] {
         import multiplication._
@@ -86,9 +86,9 @@ object Program {
   object DivisionInTheMiddle {
     def dsl[A](
         implicit
-        expression: Expression[A],
-        multiplication: Multiplication[A],
-        division: Division[A]
+        expression: Expression[Option, A],
+        multiplication: Multiplication[Option, A],
+        division: Division[Option, A]
       ): Program[A] =
       new Program[A] {
         import multiplication._
