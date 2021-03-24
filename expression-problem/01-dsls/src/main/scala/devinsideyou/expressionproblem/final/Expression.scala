@@ -1,8 +1,14 @@
 package devinsideyou.expressionproblem.`final`
 
-trait Expression[F[_], A] {
+trait Literal[F[_], A] {
   def literal(x: Int): F[A]
+}
+
+trait Negation[F[_], A] {
   def negation(x: F[A]): F[A]
+}
+
+trait Addition[F[_], A] {
   def addition(left: F[A], right: F[A]): F[A]
 }
 
