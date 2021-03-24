@@ -1,6 +1,7 @@
 package devinsideyou.expressionproblem.`final`
 
 import cats._
+import cats.data._
 import cats.implicits._
 object Evaluate {
   object Literal {
@@ -18,30 +19,31 @@ object Evaluate {
   }
 
   object Addition {
-    def dsl[F[_]: Apply]: Addition[F, Int] =
+    def dsl[F[_]: Apply: NonEmptyParallel]: Addition[F, Int] =
       new Addition[F, Int] {
         def addition(left: F[Int], right: F[Int]): F[Int] =
-          (left, right).mapN { case (x, y) => x + y }
+          (left, right).parMapN { case (x, y) => x + y }
       }
   }
 
   object Multiplication {
-    def dsl[F[_]: Apply]: Multiplication[F, Int] =
+    def dsl[F[_]: Apply: NonEmptyParallel]: Multiplication[F, Int] =
       new Multiplication[F, Int] {
         def multiply(left: F[Int], right: F[Int]): F[Int] =
-          (left, right).mapN { case (x, y) => x * y }
+          (left, right).parMapN { case (x, y) => x * y }
       }
   }
 
   object Division {
     type MonadErrorWithString[F[_]] = MonadError[F, String]
 
-    def dsl[F[_]: MonadErrorWithString]: Division[F, Int] =
+    def dsl[F[_]: MonadError[*[_], NonEmptyChain[String]]: NonEmptyParallel]: Division[F, Int] =
       new Division[F, Int] {
         def divide(left: F[Int], right: F[Int]): F[Int] =
-          (left, right).tupled.flatMap {
-            case (_, 0) => "Division by zero".raiseError[F, Int]
-            case (x, y) => (x / y).pure[F]
+          (left, right).parTupled.flatMap {
+            case (_, 0) => "Division by zero".pure[NonEmptyChain].raiseError[F, Int]
+            case (x, y) if (x % y == 0) => (x / y).pure[F]
+            case (x, y) => s"Division with rest: ${x % y}".pure[NonEmptyChain].raiseError[F, Int]
           }
       }
   }

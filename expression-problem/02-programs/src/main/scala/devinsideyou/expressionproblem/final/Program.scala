@@ -91,10 +91,11 @@ object Program {
       new Program[F, A] {
         import lit._
         import div._
-        override val run: F[A] = divide(
-          Multiplication.dsl.run,
-          literal(2)
-        )
+        override val run: F[A] =
+          divide(
+            Multiplication.dsl.run,
+            literal(2)
+          )
       }
   }
 
@@ -127,6 +128,31 @@ object Program {
                 ),
                 literal(2)
               )
+            )
+          )
+      }
+  }
+
+  object DivisionWithTwoErrors {
+    def dsl[F[_], A](
+        implicit
+        lit: Literal[F, A],
+        add: Addition[F, A],
+        div: Division[F, A]
+      ): Program[F, A] =
+      new Program[F, A] {
+        import lit._
+        import add._
+        import div._
+        override val run: F[A] =
+          addition(
+            divide(
+              literal(3),
+              literal(0)
+            ),
+            divide(
+              literal(5),
+              literal(3)
             )
           )
       }

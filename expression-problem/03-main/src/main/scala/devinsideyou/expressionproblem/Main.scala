@@ -3,6 +3,7 @@ package devinsideyou.expressionproblem
 import scala.util.chaining._
 
 import cats._
+import cats.data._
 import cats.instances.all._
 
 object Main extends App {
@@ -87,7 +88,7 @@ object Main extends App {
 
   Program
     .Division
-    .dsl[Either[String, *], Int](
+    .dsl[EitherNec[String, *], Int](
       Evaluate.Literal.dsl,
       Evaluate.Negation.dsl,
       Evaluate.Addition.dsl,
@@ -113,7 +114,7 @@ object Main extends App {
 
   Program
     .DivisionInTheMiddle
-    .dsl[Either[String, *], Int](
+    .dsl[EitherNec[String, *], Int](
       Evaluate.Literal.dsl,
       Evaluate.Negation.dsl,
       Evaluate.Addition.dsl,
@@ -130,6 +131,29 @@ object Main extends App {
       View.Negation.dsl,
       View.Addition.dsl,
       View.Multiplication.dsl,
+      View.Division.dsl
+    )
+    .run
+    .tap(println)
+
+  println("─" * 100)
+
+    Program
+    .DivisionWithTwoErrors
+    .dsl[EitherNec[String, *], Int](
+      Evaluate.Literal.dsl,
+      Evaluate.Addition.dsl,
+      Evaluate.Division.dsl
+    )
+    .run
+    .pipe(res => Console.RED + res + Console.RESET)
+    .tap(println)
+
+  Program
+    .DivisionWithTwoErrors
+    .dsl[Id, String](
+      View.Literal.dsl,
+      View.Addition.dsl,
       View.Division.dsl
     )
     .run
