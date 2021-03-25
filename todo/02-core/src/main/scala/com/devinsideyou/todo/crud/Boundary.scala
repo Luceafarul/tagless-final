@@ -19,4 +19,34 @@ trait Boundary[F[_]] {
   def deleteAll: F[Unit]
 }
 
+object Boundary {
+  trait Functor[F[_]] {
+    def map[A, B](fa: F[A])(f: A => B): F[B]
+  }
 
+  def dsl[F[_]](gateway: EntityGateway[F])(implicit functor: Functor[F]): Boundary[F] =
+    new Boundary[F] {
+      override def createOne(todo: Todo.Data): F[Todo.Existing] =
+        functor.map(createMany(Vector(todo)))(vector => vector.head)
+
+      override def createMany(todos: Vector[Todo.Data]): F[Vector[Todo.Existing]] = ???
+
+      override def readOneById(id: String): F[Option[Todo.Existing]] = ???
+
+      override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] = ???
+
+      override def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]] = ???
+
+      override def readAll: F[Vector[Todo.Existing]] = ???
+
+      override def updateOne(todo: Todo.Existing): F[Todo.Existing] = ???
+
+      override def updateMany(todos: Vector[Todo.Existing]): F[Vector[Todo.Existing]] = ???
+
+      override def deleteOne(todo: Todo.Existing): F[Unit] = ???
+
+      override def deleteMany(todos: Vector[Todo.Existing]): F[Unit] = ???
+
+      override def deleteAll: F[Unit] = ???
+    }
+}
