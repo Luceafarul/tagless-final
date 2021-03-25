@@ -7,4 +7,7 @@ package object implicits {
       Functor[F].map(fa)(f)
   }
 
+  final implicit class AnyOps[A](private val a: A) extends AnyVal {
+    @inline def pure[F[_]: Applicative]: F[A] = Applicative[F].pure(a)
+  }
 }
