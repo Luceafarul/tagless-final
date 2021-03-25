@@ -1,6 +1,8 @@
 package com.devinsideyou.todo.crud
 
 import com.devinsideyou.Todo
+import handmade.cats.core.Functor
+import handmade.cats.core.implicits._
 
 trait Boundary[F[_]] {
   def createOne(todo: Todo.Data): F[Todo.Existing]
@@ -20,19 +22,6 @@ trait Boundary[F[_]] {
 }
 
 object Boundary {
-  trait Functor[F[_]] {
-    def map[A, B](fa: F[A])(f: A => B): F[B]
-  }
-
-  object Functor {
-    def apply[F[_]: Functor]: Functor[F] = implicitly[Functor[F]]
-  }
-
-  final implicit class FunctorOps[F[_]: Functor, A](private val fa: F[A]) {
-    @inline def map[B](f: A => B): F[B] =
-      Functor[F].map(fa)(f)
-  }
-
   def dsl[F[_]: Functor](gateway: EntityGateway[F]): Boundary[F] =
     new Boundary[F] {
       override def createOne(todo: Todo.Data): F[Todo.Existing] =

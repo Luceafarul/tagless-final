@@ -26,6 +26,10 @@ lazy val `todo` =
       main
     )
 
+lazy val `handmade-cats-core` =
+  project
+    .in(file("00-handmade-cats-core"))
+
 lazy val domain =
   project
     .in(file("01-domain"))
@@ -33,6 +37,7 @@ lazy val domain =
 lazy val core =
   project
     .in(file("02-core"))
+    .dependsOn(`handmade-cats-core` % Cctt)
     .dependsOn(domain % Cctt)
     .settings(commonSettings: _*)
     .settings(
