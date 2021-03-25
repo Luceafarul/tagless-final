@@ -1,14 +1,14 @@
-package com.devinsideyou
-package todo
-package crud
+package com.devinsideyou.todo.crud
 
-trait EntityGateway {
-  def writeMany(todos: Vector[Todo]): Vector[Todo.Existing]
+import com.devinsideyou.Todo
 
-  def readManyById(ids: Vector[String]): Vector[Todo.Existing]
-  def readManyByPartialDescription(partialDescription: String): Vector[Todo.Existing]
-  def readAll: Vector[Todo.Existing]
+trait EntityGateway[F[_]] {
+  def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]]
 
-  def deleteMany(todos: Vector[Todo.Existing]): Unit
-  def deleteAll: Unit
+  def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]]
+  def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]]
+  def readAll: F[Vector[Todo.Existing]]
+
+  def deleteMany(todos: Vector[Todo.Existing]): F[Unit]
+  def deleteAll: F[Unit]
 }
