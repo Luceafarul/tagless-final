@@ -5,30 +5,25 @@ import handmade.cats._
 import handmade.cats.core.implicits._
 
 object InMemoryEntityGateway {
-  def dsl[F[_] : Applicative : Defer]: EntityGateway[F] = new EntityGateway[F] {
+  def dsl[F[_] : Delay]: EntityGateway[F] = new EntityGateway[F] {
     var nextId: Int = 0
     var state: Vector[Todo.Existing] = Vector.empty
 
     override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] = ???
 
     private def createOne(todo: Todo.Data): F[Todo.Existing] = {
-      val defer = implicitly[Defer[F]]
-      defer.defer {
-        {
-          val created =
-            Todo.Existing(
-              id = nextId.toString,
-              data = todo
-            )
+      val created =
+        Todo.Existing(
+          id = nextId.toString,
+          data = todo
+        )
 
-          state :+= created
+      state :+= created
 
-          nextId += 1
+      nextId += 1
 
-          created
-        }.pure[F]
-      }
-    }
+      created
+    }.delay[F]
 
     override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] = ???
 

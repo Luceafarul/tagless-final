@@ -1,6 +1,6 @@
 package handmade.cats.core
 
-import handmade.cats.Applicative
+import handmade.cats.{Applicative, Delay}
 
 package object implicits {
 
@@ -11,6 +11,8 @@ package object implicits {
 
   final implicit class AnyOps[A](private val a: A) extends AnyVal {
     @inline def pure[F[_]: Applicative]: F[A] = Applicative[F].pure(a)
+
+    @inline def delay[F[_]: Delay]: F[A] = Delay[F].delay(a)
   }
 
 }
