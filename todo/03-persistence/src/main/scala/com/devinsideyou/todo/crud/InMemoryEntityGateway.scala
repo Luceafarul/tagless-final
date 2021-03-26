@@ -1,16 +1,19 @@
 package com.devinsideyou.todo.crud
 
 import com.devinsideyou.Todo
+import handmade.cats._
+import handmade.cats.effect._
 import handmade.cats.core.implicits._
 import handmade.cats.core.instances.EqInstances._
-import handmade.cats.effect._
+import handmade.cats.core.instances.TraverseInstances._
 
 object InMemoryEntityGateway {
   def dsl[F[_] : Sync]: EntityGateway[F] = new EntityGateway[F] {
     var nextId: Int = 0
     var state: Vector[Todo.Existing] = Vector.empty
 
-    override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] = ???
+    override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] =
+      todos.traverse(writeOne)
 
     override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] =
       Sync[F].delay {
