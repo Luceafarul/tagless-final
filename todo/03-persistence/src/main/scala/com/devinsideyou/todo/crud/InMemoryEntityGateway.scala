@@ -12,15 +12,37 @@ object InMemoryEntityGateway {
 
     override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] = ???
 
-    override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] = ???
+    override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] =
+      Sync[F].delay {
+        state.filter(todo => ids.contains(todo.id))
+      }
 
-    override def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]] = ???
+    override def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]] =
+      Sync[F].delay {
+        state.filter(
+          _.description
+            .toLowerCase
+            .contains(partialDescription.toLowerCase)
+        )
+      }
 
-    override def readAll: F[Vector[Todo.Existing]] = ???
+    override def readAll: F[Vector[Todo.Existing]] = Sync[F].delay(state)
 
-    override def deleteMany(todos: Vector[Todo.Existing]): F[Unit] = ???
+    override def deleteMany(todos: Vector[Todo.Existing]): F[Unit] =
+      Sync[F].delay {
+        state = state.filterNot(todo => todos.map(_.id).contains(todo.id))
+      }.void
 
-    override def deleteAll: F[Unit] = ???
+    override def deleteAll: F[Unit] =
+      Sync[F].delay {
+        state = Vector.empty
+      }.void
+
+    private def writeOne(todo: Todo): F[Todo.Existing] =
+      todo match {
+        case item: Todo.Data => createOne(item)
+        case item: Todo.Existing => updateOne(item)
+      }
 
     private def createOne(todo: Todo.Data): F[Todo.Existing] = Sync[F].delay {
       val created =
@@ -38,8 +60,7 @@ object InMemoryEntityGateway {
 
     private def updateOne(todo: Todo.Existing): F[Todo.Existing] = Sync[F].delay {
       state = state.filterNot(_.id === todo.id) :+ todo
-
       todo
-    }
+    }.as(todo)
   }
 }

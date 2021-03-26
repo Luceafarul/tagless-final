@@ -5,8 +5,11 @@ import handmade.cats.{Applicative, Eq}
 package object implicits {
 
   final implicit class FunctorOps[F[_]: Functor, A](private val fa: F[A]) {
-    @inline def map[B](f: A => B): F[B] =
-      Functor[F].map(fa)(f)
+    @inline def map[B](f: A => B): F[B] = Functor[F].map(fa)(f)
+
+    @inline def as[B](b: B): F[B] = Functor[F].map(fa)(_ => b)
+
+    @inline def void: F[Unit] = Functor[F].map(fa)(_ => ())
   }
 
   final implicit class AnyOps[A](private val a: A) extends AnyVal {
@@ -18,4 +21,5 @@ package object implicits {
 
     @inline def =!=(x: A): Boolean = Eq[A].neqv(a, x)
   }
+
 }
