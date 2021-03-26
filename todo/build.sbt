@@ -19,6 +19,8 @@ lazy val `todo` =
   project
     .in(file("."))
     .aggregate(
+      `handmade-cats-core`,
+      `handmade-cats-effect`,
       domain,
       core,
       delivery,
@@ -29,6 +31,11 @@ lazy val `todo` =
 lazy val `handmade-cats-core` =
   project
     .in(file("00-handmade-cats-core"))
+
+lazy val `handmade-cats-effect` =
+  project
+    .dependsOn(`handmade-cats-core` % Cctt)
+    .in(file("00-handmade-cats-effect"))
 
 lazy val domain =
   project
@@ -58,6 +65,8 @@ lazy val delivery =
 lazy val persistence =
   project
     .in(file("03-persistence"))
+    .dependsOn(`handmade-cats-core` % Cctt)
+    .dependsOn(`handmade-cats-effect` % Cctt)
     .dependsOn(core % Cctt)
     .settings(commonSettings: _*)
 
