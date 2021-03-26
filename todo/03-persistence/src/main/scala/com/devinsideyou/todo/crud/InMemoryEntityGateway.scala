@@ -1,6 +1,8 @@
 package com.devinsideyou.todo.crud
 
 import com.devinsideyou.Todo
+import handmade.cats.core.implicits._
+import handmade.cats.core.instances.EqInstances._
 import handmade.cats.effect._
 
 object InMemoryEntityGateway {
@@ -35,7 +37,7 @@ object InMemoryEntityGateway {
     }
 
     private def updateOne(todo: Todo.Existing): F[Todo.Existing] = Sync[F].delay {
-      state = state.filterNot(_.id == todo.id) :+ todo
+      state = state.filterNot(_.id === todo.id) :+ todo
 
       todo
     }

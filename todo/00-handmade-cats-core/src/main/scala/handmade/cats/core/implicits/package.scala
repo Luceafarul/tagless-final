@@ -1,6 +1,6 @@
 package handmade.cats.core
 
-import handmade.cats.Applicative
+import handmade.cats.{Applicative, Eq}
 
 package object implicits {
 
@@ -13,4 +13,9 @@ package object implicits {
     @inline def pure[F[_]: Applicative]: F[A] = Applicative[F].pure(a)
   }
 
+  final implicit class EqOps[A: Eq](private val a: A) {
+    @inline def ===(x: A): Boolean = Eq[A].eqv(a, x)
+
+    @inline def =!=(x: A): Boolean = Eq[A].neqv(a, x)
+  }
 }
