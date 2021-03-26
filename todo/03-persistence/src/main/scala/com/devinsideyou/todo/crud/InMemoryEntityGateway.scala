@@ -1,60 +1,43 @@
-package com.devinsideyou
-package todo
-package crud
+package com.devinsideyou.todo.crud
+
+import com.devinsideyou.Todo
+import handmade.cats._
+import handmade.cats.core.implicits._
 
 object InMemoryEntityGateway {
-  val dsl: EntityGatewayOld = {
+  def dsl[F[_] : Applicative : Defer]: EntityGateway[F] = new EntityGateway[F] {
     var nextId: Int = 0
     var state: Vector[Todo.Existing] = Vector.empty
 
-    new EntityGatewayOld {
-      override def writeMany(todos: Vector[Todo]): Vector[Todo.Existing] =
-        todos.map(writeOne)
+    override def writeMany(todos: Vector[Todo]): F[Vector[Todo.Existing]] = ???
 
-      private def writeOne(todo: Todo): Todo.Existing =
-        todo match {
-          case item: Todo.Data     => createOne(item)
-          case item: Todo.Existing => updateOne(item)
-        }
+    private def createOne(todo: Todo.Data): F[Todo.Existing] = {
+      val defer = implicitly[Defer[F]]
+      defer.defer {
+        {
+          val created =
+            Todo.Existing(
+              id = nextId.toString,
+              data = todo
+            )
 
-      private def createOne(todo: Todo.Data): Todo.Existing = {
-        val created =
-          Todo.Existing(
-            id = nextId.toString,
-            data = todo
-          )
+          state :+= created
 
-        state :+= created
+          nextId += 1
 
-        nextId += 1
-
-        created
+          created
+        }.pure[F]
       }
-
-      override def readManyById(ids: Vector[String]): Vector[Todo.Existing] =
-        state.filter(todo => ids.contains(todo.id))
-
-      override def readManyByPartialDescription(partialDescription: String): Vector[Todo.Existing] =
-        state.filter(
-          _.description
-            .toLowerCase
-            .contains(partialDescription.toLowerCase)
-        )
-
-      override def readAll: Vector[Todo.Existing] =
-        state
-
-      private def updateOne(todo: Todo.Existing): Todo.Existing = {
-        state = state.filterNot(_.id == todo.id) :+ todo
-
-        todo
-      }
-
-      override def deleteMany(todos: Vector[Todo.Existing]): Unit =
-        state = state.filterNot(todo => todos.map(_.id).contains(todo.id))
-
-      override def deleteAll: Unit =
-        state = Vector.empty
     }
+
+    override def readManyById(ids: Vector[String]): F[Vector[Todo.Existing]] = ???
+
+    override def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]] = ???
+
+    override def readAll: F[Vector[Todo.Existing]] = ???
+
+    override def deleteMany(todos: Vector[Todo.Existing]): F[Unit] = ???
+
+    override def deleteAll: F[Unit] = ???
   }
 }
