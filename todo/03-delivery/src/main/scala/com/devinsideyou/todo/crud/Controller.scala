@@ -14,7 +14,7 @@ trait Controller[F[_]] {
 }
 
 object Controller {
-  def dsl[F[_]: FancyConsole : Random : Functor : FlatMap: Applicative](
+  def dsl[F[_]: FancyConsole : Random : Functor : Monad](
     boundary: Boundary[F],
     pattern: DateTimeFormatter
   ): Controller[F] = () => {
@@ -55,24 +55,18 @@ object Controller {
     def prompt: F[String] =
       menu.flatMap { m => FancyConsole[F].getStrLnTrimmedWithPrompt(m) }
 
-//    @scala.annotation.tailrec
-    def loop(shouldKeepLooping: Boolean): F[Unit] =
-      if (shouldKeepLooping)
-        prompt.flatMap {
-          case "c"                         => create().as(true)
-          case "d"                         => delete().as(true)
-          case "da"                        => deleteAll().as(true)
-          case "sa"                        => showAll().as(true)
-          case "sd"                        => searchByPartialDescription().as(true)
-          case "sid"                       => searchById().as(true)
-          case "ud"                        => updateDescription().as(true)
-          case "udl"                       => updateDeadline().as(true)
-          case "e" | "q" | "exit" | "quit" => exit().as(false)
-          case _                           => true.pure[F]
-        }.flatMap(loop)
-      else ().pure[F]
-
-    loop(shouldKeepLooping = true)
+    prompt.flatMap {
+      case "c"                         => create().as(true)
+      case "d"                         => delete().as(true)
+      case "da"                        => deleteAll().as(true)
+      case "sa"                        => showAll().as(true)
+      case "sd"                        => searchByPartialDescription().as(true)
+      case "sid"                       => searchById().as(true)
+      case "ud"                        => updateDescription().as(true)
+      case "udl"                       => updateDeadline().as(true)
+      case "e" | "q" | "exit" | "quit" => exit().as(false)
+      case _                           => true.pure[F]
+    }.iterateWhile(identity).void
 
     def descriptionPrompt: F[String] =
       FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter a description:")

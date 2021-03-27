@@ -1,6 +1,6 @@
 package handmade.cats.core
 
-import handmade.cats.{Applicative, Eq, FlatMap, Traverse}
+import handmade.cats.{Applicative, Eq, FlatMap, Monad, Traverse}
 
 package object implicits {
 
@@ -25,6 +25,10 @@ package object implicits {
     @inline def flatMap[B](f: A => F[B]): F[B] = FlatMap[F].flatMap(fa)(f)
 
     @inline def >>[B](fb: => F[B]): F[B] = FlatMap[F].flatMap(fb)(_ => fb)
+  }
+
+  final implicit class MonadOps[F[_]: Monad, A](private val fa: F[A]) {
+    @inline def iterateWhile(p: A => Boolean): F[A] = Monad[F].iterateWhile(fa)(p)
   }
 
   final implicit class AnyOps[A](private val a: A) extends AnyVal {
