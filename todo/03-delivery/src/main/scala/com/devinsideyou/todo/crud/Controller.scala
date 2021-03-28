@@ -5,6 +5,7 @@ import com.devinsideyou.todo.{FancyConsole, Random}
 import handmade.cats._
 import handmade.cats.core.Functor
 import handmade.cats.core.implicits._
+import handmade.cats.core.instances.TraverseInstances._
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -17,92 +18,104 @@ object Controller {
   def dsl[F[_]: FancyConsole : Random : Functor : Monad](
     boundary: Boundary[F],
     pattern: DateTimeFormatter
-  ): Controller[F] = () => {
-    val colors: Vector[String] =
-      Vector(
-        scala.Console.BLUE,
-        scala.Console.CYAN,
-        scala.Console.GREEN,
-        scala.Console.MAGENTA,
-        scala.Console.RED,
-        scala.Console.YELLOW
-      )
+  ): Controller[F] = new Controller[F] {
+    override def run(): F[Unit] = {
+      val colors: Vector[String] =
+        Vector(
+          scala.Console.BLUE,
+          scala.Console.CYAN,
+          scala.Console.GREEN,
+          scala.Console.MAGENTA,
+          scala.Console.RED,
+          scala.Console.YELLOW
+        )
 
-    def randomColor: F[String] =
-      Random[F].nextInt(colors.size).map(colors)
+      def randomColor: F[String] =
+        Random[F].nextInt(colors.size).map(colors)
 
-    def hyphens: F[String] =
-      randomColor.map(inColor("─" * 100))
+      def hyphens: F[String] =
+        randomColor.map(inColor("─" * 100))
 
-    val menu: F[String] = hyphens.map { h =>
-      s"""|
+      val menu: F[String] = hyphens.map { h =>
+        s"""|
             |$h
-          |
-          |c                   => create new todo
-          |d                   => delete todo
-          |da                  => delete all todos
-          |sa                  => show all todos
-          |sd                  => search by partial description
-          |sid                 => search by id
-          |ud                  => update description
-          |udl                 => update deadline
-          |e | q | exit | quit => exit the application
-          |anything else       => show the main menu
-          |
-          |Please enter a command:""".stripMargin
+            |
+            |c                   => create new todo
+            |d                   => delete todo
+            |da                  => delete all todos
+            |sa                  => show all todos
+            |sd                  => search by partial description
+            |sid                 => search by id
+            |ud                  => update description
+            |udl                 => update deadline
+            |e | q | exit | quit => exit the application
+            |anything else       => show the main menu
+            |
+            |Please enter a command:""".stripMargin
+      }
+
+      def prompt: F[String] =
+        menu.flatMap { m => FancyConsole[F].getStrLnTrimmedWithPrompt(m) }
+
+      prompt.flatMap {
+        case "c" => create().as(true)
+        case "d" => delete().as(true)
+        case "da" => deleteAll().as(true)
+        case "sa" => showAll().as(true)
+        case "sd" => searchByPartialDescription().as(true)
+        case "sid" => searchById().as(true)
+        case "ud" => updateDescription().as(true)
+        case "udl" => updateDeadline().as(true)
+        case "e" | "q" | "exit" | "quit" => exit().as(false)
+        case _ => true.pure[F]
+      }.iterateWhile(identity).void
     }
-
-    def prompt: F[String] =
-      menu.flatMap { m => FancyConsole[F].getStrLnTrimmedWithPrompt(m) }
-
-    prompt.flatMap {
-      case "c"                         => create().as(true)
-      case "d"                         => delete().as(true)
-      case "da"                        => deleteAll().as(true)
-      case "sa"                        => showAll().as(true)
-      case "sd"                        => searchByPartialDescription().as(true)
-      case "sid"                       => searchById().as(true)
-      case "ud"                        => updateDescription().as(true)
-      case "udl"                       => updateDeadline().as(true)
-      case "e" | "q" | "exit" | "quit" => exit().as(false)
-      case _                           => true.pure[F]
-    }.iterateWhile(identity).void
 
     def descriptionPrompt: F[String] =
       FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter a description:")
 
     def create(): F[Unit] =
-      descriptionPrompt.map { description =>
+      descriptionPrompt.flatMap { description =>
         withDeadlinePrompt { deadline =>
           boundary
-            .createOne(Todo.Data(description, deadline))
-            .as(FancyConsole[F].putSuccess("Successfully created the new todo."))
+            .createOne(Todo.Data(description, deadline)) >>
+            FancyConsole[F].putSuccess("Successfully created the new todo.")
         }
       }
 
+    def delete(): F[Unit] =
+      withIdPrompt { id =>
+        withReadOne(id) { todo =>
+          boundary.deleteOne(todo) >>
+            FancyConsole[F].putSuccess("Successfully deleted the todo.")
+        }
+      }
+
+    def deleteAll(): F[Unit] =
+      boundary.deleteAll >> FancyConsole[F].putSuccess("Successfully deleted all todos.")
+
     def showAll(): F[Unit] =
-      boundary.readAll.map(displayZeroOrMany)
+      boundary.readAll.flatMap(displayZeroOrMany)
 
     def searchByPartialDescription(): F[Unit] =
       descriptionPrompt
         .flatMap(boundary.readManyByPartialDescription)
-        .map(displayZeroOrMany)
+        .flatMap(displayZeroOrMany)
 
     def searchById(): F[Unit] =
       withIdPrompt { id =>
         boundary
           .readOneById(id)
           .map(_.to(Vector))
-          .map(displayZeroOrMany)
+          .flatMap(displayZeroOrMany)
       }
 
     def updateDescription(): F[Unit] =
       withIdPrompt { id =>
         withReadOne(id) { todo =>
-          descriptionPrompt.map { description =>
-            boundary
-              .updateOne(todo.withUpdatedDescription(description))
-              .as(FancyConsole[F].putSuccess("Successfully updated the description."))
+          descriptionPrompt.flatMap { description =>
+            boundary.updateOne(todo.withUpdatedDescription(description)) >>
+              FancyConsole[F].putSuccess("Successfully updated the description.")
           }
         }
       }
@@ -111,9 +124,8 @@ object Controller {
       withIdPrompt { id =>
         withReadOne(id) { todo =>
           withDeadlinePrompt { deadline =>
-            boundary
-              .updateOne(todo.withUpdatedDeadline(deadline))
-              .as(FancyConsole[F].putSuccess("Successfully updated the deadline."))
+            boundary.updateOne(todo.withUpdatedDeadline(deadline)) >>
+              FancyConsole[F].putSuccess("Successfully updated the deadline.")
           }
         }
       }
@@ -129,20 +141,18 @@ object Controller {
         val renderedSize: String =
           inColor(todos.size.toString)(scala.Console.GREEN)
 
-        FancyConsole[F]
-          .putStrLn(s"\nFound $renderedSize $uxMatters:\n")
-          .as {
-            todos
-              .sortBy(_.deadline)
-              .map(renderedWithPattern)
-              .foreach(println)
-          }
+        FancyConsole[F].putStrLn(s"\nFound $renderedSize $uxMatters:\n") >>
+          todos
+            .sortBy(_.deadline)
+            .map(renderedWithPattern)
+            .traverse(FancyConsole[F].putStrLn)
+            .void
       }
 
-    def withDeadlinePrompt(onSuccess: LocalDateTime => Unit): F[Unit] =
-      deadlinePrompt.map(toLocalDateTime).map {
+    def withDeadlinePrompt(onSuccess: LocalDateTime => F[Unit]): F[Unit] =
+      deadlinePrompt.map(toLocalDateTime).flatMap {
         case Right(deadline) => onSuccess(deadline)
-        case Left(error)     => FancyConsole[F].putError(error)
+        case Left(error) => FancyConsole[F].putError(error)
       }
 
     def deadlinePrompt: F[String] =
@@ -158,48 +168,33 @@ object Controller {
         .toEither
         .left
         .map { _ =>
-          s"\n${inColor(input)(scala.Console.YELLOW)} does not match the required format $DeadlinePromptFormat.${scala.Console.RESET}"
+          s"\n${inColor(input)(scala.Console.YELLOW)} does not match the required format " +
+            s"$DeadlinePromptFormat.${scala.Console.RESET}"
         }
     }
 
-    def delete(): F[Unit] =
-      withIdPrompt { id =>
-        withReadOne(id) { todo =>
-          boundary
-            .deleteOne(todo)
-            .as(FancyConsole[F].putSuccess("Successfully deleted the todo."))
-        }
-      }
-
-    def deleteAll(): F[Unit] =
-      boundary
-        .deleteAll
-        .as(FancyConsole[F].putSuccess("Successfully deleted all todos."))
-
-    def withIdPrompt(onValidId: String => Unit): F[Unit] =
-      idPrompt.map(toId).map {
-        case Right(id)   => onValidId(id)
+    def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
+      idPrompt.map(toId).flatMap {
+        case Right(id) => onValidId(id)
         case Left(error) => FancyConsole[F].putError(error)
       }
+
+    def toId(userInput: String): Either[String, String] =
+      if (userInput.isEmpty || userInput.contains(" "))
+        Left(s"\n${scala.Console.YELLOW + userInput + scala.Console.RED} " +
+          s"is not a valid id.${scala.Console.RESET}")
+      else Right(userInput)
 
     def idPrompt: F[String] =
       FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter the id:")
 
-    def withReadOne(id: String)(onFound: Todo.Existing => Unit): F[Unit] =
+    def withReadOne(id: String)(onFound: Todo.Existing => F[Unit]): F[Unit] =
       boundary
         .readOneById(id)
-        .map {
+        .flatMap {
           case Some(todo) => onFound(todo)
-          case None       => displayNoTodosFoundMessage()
+          case None => displayNoTodosFoundMessage()
         }
-
-    def toId(userInput: String): Either[String, String] =
-      if (userInput.isEmpty || userInput.contains(" "))
-        Left(
-          s"\n${scala.Console.YELLOW + userInput + scala.Console.RED} is not a valid id.${scala.Console.RESET}"
-        )
-      else
-        Right(userInput)
 
     def displayNoTodosFoundMessage(): F[Unit] =
       FancyConsole[F].putWarning("\nNo todos found!")
@@ -216,8 +211,6 @@ object Controller {
 
       s"$renderedId $renderedDescription is due on $renderedDeadline."
     }
-
-    ???
   }
 
   private val DeadlinePromptPattern: String =
