@@ -1,19 +1,15 @@
-package com.devinsideyou
-package todo
-package crud
+package com.devinsideyou.todo.crud
+
+import handmade.cats.effect.Sync
 
 import java.time.format.DateTimeFormatter
 
-object DependencyGraph {
-  def dsl(pattern: DateTimeFormatter)(
-    implicit
-    fancyConsole: FancyConsoleOld,
-    random: RandomOld
-  ): ControllerOld =
-    ControllerOld.dsl(
+class DependencyGraph[F[_]: Sync] {
+  def dsl(pattern: DateTimeFormatter): Controller[F] =
+    Controller.dsl(
       pattern = pattern,
-      boundary = BoundaryOld.dsl(
-        gateway = InMemoryEntityGatewayOld.dsl
+      boundary = Boundary.dsl(
+        gateway = InMemoryEntityGateway.dsl
       )
     )
 }

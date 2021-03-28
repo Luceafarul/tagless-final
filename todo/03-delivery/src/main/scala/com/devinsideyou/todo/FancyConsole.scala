@@ -16,7 +16,7 @@ trait FancyConsole[F[_]] {
 object FancyConsole {
   def apply[F[_]: FancyConsole]: FancyConsole[F] = implicitly[FancyConsole[F]]
 
-  def dsl[F[_]: Console: Functor]: FancyConsole[F] = new FancyConsole[F] {
+  implicit def dsl[F[_]: Console: Functor]: FancyConsole[F] = new FancyConsole[F] {
     override def getStrLnTrimmed: F[String] =
       Console[F].getStrLn.map(_.trim)
 
