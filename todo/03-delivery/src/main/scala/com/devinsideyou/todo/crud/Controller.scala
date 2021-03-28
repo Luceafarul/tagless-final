@@ -1,7 +1,7 @@
 package com.devinsideyou.todo.crud
 
 import com.devinsideyou.Todo
-import com.devinsideyou.todo.{FancyConsole, Random}
+import com.devinsideyou.todo.{Console, FancyConsole, Random}
 import handmade.cats._
 import handmade.cats.core.Functor
 import handmade.cats.core.implicits._
@@ -15,9 +15,11 @@ trait Controller[F[_]] {
 }
 
 object Controller {
-  def dsl[F[_]: FancyConsole : Random : Functor : Monad](
+  def dsl[F[_]: Functor : Monad](
     boundary: Boundary[F],
-    pattern: DateTimeFormatter
+    pattern: DateTimeFormatter,
+    fancyConsole: FancyConsole[F],
+    random: Random[F]
   ): Controller[F] = new Controller[F] {
     override def run(): F[Unit] = {
       val colors: Vector[String] =
@@ -31,7 +33,7 @@ object Controller {
         )
 
       def randomColor: F[String] =
-        Random[F].nextInt(colors.size).map(colors)
+        random.nextInt(colors.size).map(colors)
 
       def hyphens: F[String] =
         randomColor.map(inColor("─" * 100))
@@ -55,7 +57,7 @@ object Controller {
       }
 
       def prompt: F[String] =
-        menu.flatMap { m => FancyConsole[F].getStrLnTrimmedWithPrompt(m) }
+        menu.flatMap { m => fancyConsole.getStrLnTrimmedWithPrompt(m) }
 
       prompt.flatMap {
         case "c" => create().as(true)
@@ -72,14 +74,14 @@ object Controller {
     }
 
     def descriptionPrompt: F[String] =
-      FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter a description:")
+      fancyConsole.getStrLnTrimmedWithPrompt("Please enter a description:")
 
     def create(): F[Unit] =
       descriptionPrompt.flatMap { description =>
         withDeadlinePrompt { deadline =>
           boundary
             .createOne(Todo.Data(description, deadline)) >>
-            FancyConsole[F].putSuccess("Successfully created the new todo.")
+            fancyConsole.putSuccess("Successfully created the new todo.")
         }
       }
 
@@ -87,12 +89,12 @@ object Controller {
       withIdPrompt { id =>
         withReadOne(id) { todo =>
           boundary.deleteOne(todo) >>
-            FancyConsole[F].putSuccess("Successfully deleted the todo.")
+            fancyConsole.putSuccess("Successfully deleted the todo.")
         }
       }
 
     def deleteAll(): F[Unit] =
-      boundary.deleteAll >> FancyConsole[F].putSuccess("Successfully deleted all todos.")
+      boundary.deleteAll >> fancyConsole.putSuccess("Successfully deleted all todos.")
 
     def showAll(): F[Unit] =
       boundary.readAll.flatMap(displayZeroOrMany)
@@ -115,7 +117,7 @@ object Controller {
         withReadOne(id) { todo =>
           descriptionPrompt.flatMap { description =>
             boundary.updateOne(todo.withUpdatedDescription(description)) >>
-              FancyConsole[F].putSuccess("Successfully updated the description.")
+              fancyConsole.putSuccess("Successfully updated the description.")
           }
         }
       }
@@ -125,13 +127,13 @@ object Controller {
         withReadOne(id) { todo =>
           withDeadlinePrompt { deadline =>
             boundary.updateOne(todo.withUpdatedDeadline(deadline)) >>
-              FancyConsole[F].putSuccess("Successfully updated the deadline.")
+              fancyConsole.putSuccess("Successfully updated the deadline.")
           }
         }
       }
 
     def exit(): F[Unit] =
-      FancyConsole[F].putStrLn("\nUntil next time!\n")
+      fancyConsole.putStrLn("\nUntil next time!\n")
 
     def displayZeroOrMany(todos: Vector[Todo.Existing]): F[Unit] =
       if (todos.isEmpty) displayNoTodosFoundMessage()
@@ -141,22 +143,22 @@ object Controller {
         val renderedSize: String =
           inColor(todos.size.toString)(scala.Console.GREEN)
 
-        FancyConsole[F].putStrLn(s"\nFound $renderedSize $uxMatters:\n") >>
+        fancyConsole.putStrLn(s"\nFound $renderedSize $uxMatters:\n") >>
           todos
             .sortBy(_.deadline)
             .map(renderedWithPattern)
-            .traverse(FancyConsole[F].putStrLn)
+            .traverse(fancyConsole.putStrLn)
             .void
       }
 
     def withDeadlinePrompt(onSuccess: LocalDateTime => F[Unit]): F[Unit] =
       deadlinePrompt.map(toLocalDateTime).flatMap {
         case Right(deadline) => onSuccess(deadline)
-        case Left(error) => FancyConsole[F].putError(error)
+        case Left(error) => fancyConsole.putError(error)
       }
 
     def deadlinePrompt: F[String] =
-      FancyConsole[F].getStrLnTrimmedWithPrompt(
+      fancyConsole.getStrLnTrimmedWithPrompt(
         s"Please enter a deadline in the following format $DeadlinePromptFormat:"
       )
 
@@ -176,7 +178,7 @@ object Controller {
     def withIdPrompt(onValidId: String => F[Unit]): F[Unit] =
       idPrompt.map(toId).flatMap {
         case Right(id) => onValidId(id)
-        case Left(error) => FancyConsole[F].putError(error)
+        case Left(error) => fancyConsole.putError(error)
       }
 
     def toId(userInput: String): Either[String, String] =
@@ -186,7 +188,7 @@ object Controller {
       else Right(userInput)
 
     def idPrompt: F[String] =
-      FancyConsole[F].getStrLnTrimmedWithPrompt("Please enter the id:")
+      fancyConsole.getStrLnTrimmedWithPrompt("Please enter the id:")
 
     def withReadOne(id: String)(onFound: Todo.Existing => F[Unit]): F[Unit] =
       boundary
@@ -197,7 +199,7 @@ object Controller {
         }
 
     def displayNoTodosFoundMessage(): F[Unit] =
-      FancyConsole[F].putWarning("\nNo todos found!")
+      fancyConsole.putWarning("\nNo todos found!")
 
     def renderedWithPattern(todo: Todo.Existing): String = {
       def renderedId: String =
