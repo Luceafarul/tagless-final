@@ -48,15 +48,13 @@ object InMemoryEntityGateway {
       }
 
     private def createOne(todo: Todo.Data): F[Todo.Existing] = Sync[F].delay {
-      val created =
-        Todo.Existing(
-          id = nextId.toString,
-          data = todo
-        )
+      val created = Todo.Existing(id = nextId.toString, data = todo)
 
       state :+= created
 
       nextId += 1
+
+      println(s"Todo created. $state")
 
       created
     }

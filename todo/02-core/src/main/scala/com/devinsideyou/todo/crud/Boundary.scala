@@ -2,7 +2,6 @@ package com.devinsideyou.todo.crud
 
 import com.devinsideyou.Todo
 import handmade.cats._
-import handmade.cats.core._
 import handmade.cats.core.implicits._
 
 trait Boundary[F[_]] {

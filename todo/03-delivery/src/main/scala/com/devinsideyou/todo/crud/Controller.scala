@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 trait Controller[F[_]] {
-  def run(): F[Unit]
+  def program: F[Unit]
 }
 
 object Controller {
@@ -21,7 +21,7 @@ object Controller {
     fancyConsole: FancyConsole[F],
     random: Random[F]
   ): Controller[F] = new Controller[F] {
-    override def run(): F[Unit] = {
+    override val program: F[Unit] = {
       val colors: Vector[String] =
         Vector(
           scala.Console.BLUE,
@@ -79,8 +79,7 @@ object Controller {
     def create(): F[Unit] =
       descriptionPrompt.flatMap { description =>
         withDeadlinePrompt { deadline =>
-          boundary
-            .createOne(Todo.Data(description, deadline)) >>
+          boundary.createOne(Todo.Data(description, deadline)) >>
             fancyConsole.putSuccess("Successfully created the new todo.")
         }
       }
