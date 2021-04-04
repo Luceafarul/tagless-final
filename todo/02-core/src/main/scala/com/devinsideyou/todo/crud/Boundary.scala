@@ -42,10 +42,8 @@ object Boundary {
         gateway.readManyById(ids)
 
       override def readManyByPartialDescription(partialDescription: String): F[Vector[Todo.Existing]] =
-        if (partialDescription.isEmpty)
-          Vector.empty.pure[F]
-        else
-          gateway.readManyByPartialDescription(partialDescription.trim)
+        if (partialDescription.isEmpty) Vector.empty.pure[F]
+        else gateway.readManyByPartialDescription(partialDescription.trim)
 
       override def readAll: F[Vector[Todo.Existing]] =
         gateway.readAll

@@ -24,7 +24,7 @@ package object implicits {
   final implicit class FlatMapOps[F[_]: FlatMap, A](private val fa: F[A]) {
     @inline def flatMap[B](f: A => F[B]): F[B] = FlatMap[F].flatMap(fa)(f)
 
-    @inline def >>[B](fb: => F[B]): F[B] = FlatMap[F].flatMap(fb)(_ => fb)
+    @inline def >>[B](fb: => F[B]): F[B] = FlatMap[F].flatMap(fa)(_ => fb)
   }
 
   final implicit class MonadOps[F[_]: Monad, A](private val fa: F[A]) {
